@@ -1,1 +1,0 @@
-/Users/mike/.dotfiles/nvim/rplugin/python3/nvim_markdown_notes.py
