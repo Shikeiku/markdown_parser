@@ -21,7 +21,7 @@ class Link_handler():
             'img': ':!open -a Preview ',
             'http': ':!open -a WaterFox\ Current '
         }
-        self.img = ['.png', '.jpg', '.svg', '.pdf']
+        self.img = ['.jpeg', '.png', '.jpg', '.svg', '.pdf']
 
     def open_link(self):
         """
