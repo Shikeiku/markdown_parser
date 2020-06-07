@@ -13,6 +13,16 @@ class EnterPythonFence():
         self.lines = self.nvim.current.buffer[:]
         self.fences = fences
         self.scratch = '/Users/mike/.data/nvim/scratch_files/scratch.py'
+        self.writing_placeholder = '<++Writing python++>'
+
+    def currently_writing(self):
+        """
+        Shows that the scratch file has not been returned to the markdown file
+        yet.
+        """
+        start, end = self.fences['upper']['row'], self.fences['lower']['row']
+        del self.buf[start - 1:end]
+        self.buf[start - 1] = self.writing_placeholder
 
     def scratch_write(self):
         """
@@ -26,7 +36,23 @@ class EnterPythonFence():
                 scratch.write(line + '\n')
         return 'wrote to scratch'
 
+    def open_buffers(self):
+        # md_buffer = self.nvim.current.buffer
+
+        self.nvim.command(':e ' + self.scratch)
+
+        # Maybe later I can change this to not hard coded, using the window and
+        # buffers lists in the nvim class
+        python_window = self.nvim.current.window
+        self.nvim.command(':vs')
+        self.nvim.command('IronRepl')
+        self.nvim.command('term')
+        self.nvim.current.window = python_window
+
+        # self.nvim.command('let b:message="' + str(self.buf) + '"')
+        # self.nvim.command('echo b:message')
+
     def enter(self):
+        self.currently_writing()
         self.scratch_write()
-        self.nvim.command('let b:message="' + str() + '"')
-        self.nvim.command('echo b:message')
+        self.open_buffers()

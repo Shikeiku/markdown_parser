@@ -1,5 +1,9 @@
 import pynvim
-import neovim_plugins.markdown_parser.fence as fence
+from pathlib import Path
+
+import neovim_plugins.markdown_parser.fences.fence as fence
+import neovim_plugins.markdown_parser.flashcard_stuff.anki as anki
+# import neovim_plugins.markdown_parser.fences.close as close
 # import importlib
 # importlib.reload(fence)
 
@@ -34,15 +38,28 @@ class MarkdownNeovimPortal():
     def __init__(self, nvim):
         self.nvim = nvim
 
-    @pynvim.function('Testfunction', sync=True)
-    def testfunction(self, args):
-        self.fence.testfunction()
+    # @pynvim.function('Testfunction', sync=True)
+    # def testfunction(self, args):
+    #     self.fence.testfunction()
 
     @pynvim.command('EnterFence')
     def enterfence(self):
-        self.fence = fence.Fence(self.nvim)
-        self.fence.enterfence()
+        b = self.nvim.current.buffer
+        self.nvim.command('let g:mdfence="' + str(b.number) + '"')
+        instance = fence.Fence(self.nvim)
+        fences = instance.return_fences()
+        self.nvim.command('let g:fences=' + str(fences) + '')
+        instance.enterfence()
 
-    @pynvim.function('Rtp', sync=True)
-    def list(self):
-        self.nvim.list_runtime_paths()
+    @pynvim.command('CloseFence')
+    def closefence(self):
+        b = self.nvim.eval('g:mdfence')
+        b = int(b)
+        i = self.nvim.eval('g:fences')
+        instance = fence.Fence(self.nvim)
+        instance.closefence(b, i)
+
+    @pynvim.command('FlashCards')
+    def flashcards(self):
+        cards = anki.BatchCards(self.nvim)
+        cards.write_flashcards()
