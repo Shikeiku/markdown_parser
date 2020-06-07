@@ -1,6 +1,7 @@
 import re
-import neovim_plugins.markdown_parser.fence_latex as latex
-import neovim_plugins.markdown_parser.fence_python as fence_python
+import neovim_plugins.markdown_parser.fences.fence_latex as fence_latex
+import neovim_plugins.markdown_parser.fences.fence_python as fence_python
+import neovim_plugins.markdown_parser.fences.link as fence_link
 
 
 class Fence():
@@ -23,7 +24,7 @@ class Fence():
         self.row = self.nvim.current.window.cursor[0]
         self.up = self.lines[self.row - 2::-1]
         self.down = self.lines[self.row:]
-        self.fencenames = ['LaTeX', 'python', 'anki_cloze']
+        self.fencenames = ['LaTeX', 'python', 'anki-cloze']
         # Probably will move this
         #
         # self.currently_writing_types = [
@@ -38,7 +39,7 @@ class Fence():
         """
         Checks if the current line matches the given link regex
         """
-        LINKREGEX = r'!?\[(.+)\]\((https?:\/\/)?([a-zA-Z0-9_\-\/\:\.]+?(\.\w+)?)([\"\w+\d+\s]+)?(#\s*[a-zA-Z0-9_\.\s\'\"]+)?\)'
+        LINKREGEX = r'!?\[(.+)\]\((https?:\/\/)?([a-zA-Z0-9_\?\=\-\/\:\.]+?(\.[a-z]+)?)(\"[\w+\d+\s]*?\")?(#\s*[a-zA-Z0-9_\.\s\'\"]+)?\)'
         line = self.lines[self.row - 1]
         line = str(line).strip()
         link = re.search(LINKREGEX, line)
@@ -49,7 +50,9 @@ class Fence():
                 link_info = {'http': http, 'link': url}
                 return link_info
             else:
-                return url
+                suffix = link.group(4)
+                link_info = {'link': url, 'suffix': suffix}
+                return link_info
         else:
             return None
 
@@ -105,14 +108,16 @@ class Fence():
         # fences = self.return_fences()
         if self.is_link():
             link = self.is_link()
-            self.nvim.command('let b:message="Starting the link class"')
-            self.nvim.command('echo b:message')
+            link_handler = fence_link.Link_handler(self.nvim, link)
+
+            link_handler.open_link()
+
         elif self.return_fences():
             fences = self.return_fences()
             fencetypes = {
-                'LaTeX': latex.FenceLatex(),
+                'LaTeX': fence_latex.FenceLatex(self.nvim, fences),
                 'python': fence_python.EnterPythonFence(self.nvim, fences),
-                'anki-cloze': latex.FenceAnki()
+                'anki-cloze': fence_latex.FenceAnki(self.nvim, fences)
             }
             self.nvim.command('let b:message="' + str(fences) + '"')
             self.nvim.command('echo b:message')
@@ -125,3 +130,23 @@ class Fence():
             # self.nvim.command('echo b:link')
 
         return ()
+
+    def closefence(self, mdbuffer, fences):
+        """
+        Closes the fence and updates the markdown file.
+        """
+        contents = ['```' + fences['upper']['fence']]
+        contents = contents + self.nvim.current.buffer[:]
+        contents.append(fences['lower']['fence'])
+
+        self.nvim.command(':wincmd o')
+        self.nvim.current.buffer = self.nvim.buffers[mdbuffer]
+
+        row = fences['upper']['row']
+        self.nvim.current.buffer[row:row] = contents
+        del self.nvim.current.buffer[row - 1]
+        # contents = b[:]
+
+        # b[row:row] = contents
+        # self.nvim.command('let b:fences=' + str(type(fences)) + '')
+        # self.nvim.command('echo b:fences')
