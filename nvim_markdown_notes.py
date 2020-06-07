@@ -3,6 +3,9 @@ from pathlib import Path
 
 import neovim_plugins.markdown_parser.fences.fence as fence
 import neovim_plugins.markdown_parser.flashcard_stuff.anki as anki
+import neovim_plugins.markdown_parser.fzf.markdown_fzf as fzf
+import neovim_plugins.markdown_parser.view.latex_view as latex_view
+import neovim_plugins.markdown_parser.new_note as new_note
 # import neovim_plugins.markdown_parser.fences.close as close
 # import importlib
 # importlib.reload(fence)
@@ -23,17 +26,18 @@ class MarkdownNeovimPortal():
     Auto-Commands:
     - EnterFence, when pressing enter in markdown files this command should
       occur.
-    - GoodByeFence, closes the buffer and returns to the buffer where the
+    - CloseFence, closes the buffer and returns to the buffer where the
       EnterFence was called.
 
     Editor-Commands:
-    - AnkiCards, prepares the anki cards for import into Anki
+    - Flashcards, prepares the anki cards for import into Anki
     - NewNote, make a new note with the datetime str in front
 
     Function:
-    - Tagsink, takes the output of an fzf search against the tags in the
+    - Markdowntags, takes the output of an fzf search against the tags in the
       markdown notes
-    - LinkSink, thakes the output of a fzf search in hte documents folder
+    - Markdownlinks, thakes the output of a fzf search in hte documents folder
+    - Markdownnotes
     """
     def __init__(self, nvim):
         self.nvim = nvim
@@ -63,3 +67,28 @@ class MarkdownNeovimPortal():
     def flashcards(self):
         cards = anki.BatchCards(self.nvim)
         cards.write_flashcards()
+
+    @pynvim.command('NewNote')
+    def new_note(self):
+        """
+        Make a new note in the markdown_notes folder with a dt_string in front
+        """
+        new_note.newnote(self.nvim)
+
+    @pynvim.command('LaTeXview')
+    def latex_view(self):
+        """
+        Opens the current file and all linked files in latex mode.
+        """
+        LaTeX_view = latex_view.LaTeX_viewer(self.nvim)
+        LaTeX_view.view_latex()
+
+    @pynvim.function('Markdowntags')
+    def tag_sink_portal(self, lines):
+        my_fzf = fzf.Markdown_fzf(self.nvim)
+        my_fzf.markdown_tag_sink(lines)
+
+    @pynvim.function('Markdownnotes')
+    def note_sink_portal(self, lines):
+        my_fzf = fzf.Markdown_fzf(self.nvim)
+        my_fzf.markdown_note_sink(lines)

@@ -39,7 +39,7 @@ class Fence():
         """
         Checks if the current line matches the given link regex
         """
-        LINKREGEX = r'!?\[(.+)\]\((https?:\/\/)?([a-zA-Z0-9_\?\=\-\/\:\.]+?(\.[a-z]+)?)(\"[\w+\d+\s]*?\")?(#\s*[a-zA-Z0-9_\.\s\'\"]+)?\)'
+        LINKREGEX = r'!?\[(.+)\]\((https?:\/\/)?([a-zA-Z0-9_\s\\\/\?\=\-\:\.]+?(\.[a-z]+)?)(\"[\w+\d+\s]*?\")?(#\s*[a-zA-Z0-9_\.\s\'\"]+)?\)'
         line = self.lines[self.row - 1]
         line = str(line).strip()
         link = re.search(LINKREGEX, line)
@@ -139,11 +139,14 @@ class Fence():
         contents = contents + self.nvim.current.buffer[:]
         contents.append(fences['lower']['fence'])
 
+        for i in range(len(contents)):
+            contents[i] = re.sub(r'^#', r' #', contents[i])
+
         self.nvim.command(':wincmd o')
         self.nvim.current.buffer = self.nvim.buffers[mdbuffer]
 
         row = fences['upper']['row']
-        self.nvim.current.buffer[row:row] = contents
+        self.nvim.current.buffer[row:row] = contents + ['']
         del self.nvim.current.buffer[row - 1]
         # contents = b[:]
 
