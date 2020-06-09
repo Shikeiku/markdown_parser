@@ -32,9 +32,6 @@ class Fence():
         #     '<++Writing python++>'
         # ]
 
-    def testfunction(self, *args):
-        self.nvim.command(':echo "hello"')
-
     def is_link(self):
         """
         Checks if the current line matches the given link regex

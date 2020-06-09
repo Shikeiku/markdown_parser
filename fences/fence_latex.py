@@ -38,7 +38,7 @@ class FenceLatex():
     def open_buffers(self):
         # md_buffer = self.nvim.current.buffer
 
-        self.nvim.command(':e ' + self.scratch)
+        self.nvim.command(':e! ' + self.scratch)
 
         # Maybe later I can change this to not hard coded, using the window and
         # buffers lists in the nvim class
