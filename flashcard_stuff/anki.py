@@ -48,9 +48,19 @@ class BatchCards():
         Takes the line in the current loop and if it is a link to an image then
         it copies the linked image to the anki collection media path
         """
+        # This is just what it returns
         link_info = link.groupdict()
         self.nvim.command('echo "' + str(link_info) +'"')
         html_link = r'<img src="'+link_info['url']+'">'
+
+        # Here I just put the image in anki collections media if it is not in
+        # there yet
+        file_in_md = Path(link_info['url'])
+        file_in_anki = self.anki_media/file_in_md.name
+        if file_in_anki.exists():
+            pass
+        else:
+            shutil.copyfile(str(file_in_md), str(file_in_anki))
 
         return html_link
 
