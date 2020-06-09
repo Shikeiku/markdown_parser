@@ -36,7 +36,7 @@ class Markdown_fzf():
         """
         Makes a formatted link to the note selected in the fzf search
         """
-        NOTE_REGEX = '(?P<parent>\/[a-zA-Z0-9_\/\.\s\'\"\-]+\/)(?P<date>[\dhm\-]*s?\_?)(?P<name>[a-zA-Z0-9_\/\.\s\'\"\-]+\.\w+)[:0-9]{0,3}(?P<anchor>#[a-zA-Z0-9_\/\.\s\'\"]+(?!\]))?'
+        NOTE_REGEX = '(?P<parent>\/[a-zA-Z0-9_\/\.\s\'\"\-]+\/)(?P<date>[\dhm\-]*s?\_?)(?P<name>[a-zA-Z0-9_\/\.\s\'\"\-]+(\.\w+)?)[:0-9]{0,3}(?P<anchor>#[a-zA-Z0-9_\/\.\s\'\"]+(?!\]))?'
         internal_parent = self.notes_dir
         link = ''
         try:
@@ -51,44 +51,56 @@ class Markdown_fzf():
                 else:
                     link_info['date'] = ''
                 suffix = re.findall(r'.*(\.[a-z]+$)', link_info['name'])
-                if suffix[0] in self.img:
-                    now = datetime.now()
-                    dt_string = now.strftime("%Y%m%d-%Hh%Mm%Ss_")
+                if suffix != []:
+                    if suffix[0] in self.img:
+                        now = datetime.now()
+                        dt_string = now.strftime("%Y%m%d-%Hh%Mm%Ss_")
 
-                    date_check = re.search(r'^(\d+\-\d\dh\d\dm\d\ds\_)(.*)',
-                                           link_info['date'])
-                    if not date_check:
-                        old_date = link_info['date']
-                        move_image = True
-                        link_info['date'] = dt_string + link_info['date']
-                    else:
-                        old_date = None
-                    # Move image to markdown_images and put a date string in
-                    # front of the name
+                        date_check = re.search(
+                            r'^(\d+\-\d\dh\d\dm\d\ds\_)(.*)',
+                            link_info['date'])
+                        if not date_check:
+                            old_date = link_info['date']
+                            move_image = True
+                            link_info['date'] = dt_string + link_info['date']
+                        else:
+                            old_date = None
+                        # Move image to markdown_images and put a date string in
+                        # front of the name
 
-                    link += '!'
+                        link += '!'
+                else:
+                    pass
             elif link_info['parent'] == internal_parent:
                 link_info['parent'] = ''
                 if not link_info['anchor']:
                     link_info['anchor'] = ''
 
-            if move_image:
-                original = Path(link_info['parent'] + old_date +
-                                link_info['name'])
-                if original.exists():
-                    target = Path(self.images_dir + link_info['date'] +
-                                  link_info['name'])
-                    shutil.copy(str(original), str(target))
-                link_info['name'] = link_info['name'].replace(' ', '\ ')
-                link += '[' + link_info[
-                    'name'] + '](' + self.images_dir + link_info[
-                        'date'] + link_info['name'] + ')'
+            try:
+                if move_image:
+                    original = Path(link_info['parent'] + old_date +
+                                    link_info['name'])
+                    if original.exists():
+                        target = Path(self.images_dir + link_info['date'] +
+                                      link_info['name'])
+                        shutil.copy(str(original), str(target))
+                    link_info['name'] = link_info['name'].replace(' ', '\ ')
+                    link += '[' + link_info[
+                        'name'] + '](' + self.images_dir + link_info[
+                            'date'] + link_info['name'] + ')'
 
-            else:
+            except UnboundLocalError:
                 link_info['name'] = link_info['name'].replace(' ', '\ ')
-                link += '[' + link_info['name'] + link_info[
-                    'anchor'] + '](' + link_info['parent'] + link_info[
-                        'date'] + link_info['name'] + link_info['anchor'] + ')'
+                if len(link_info['date']) < 19:
+                    link += '[' + link_info['date'] + link_info[
+                        'name'] + link_info['anchor'] + '](' + link_info[
+                            'parent'] + link_info['date'] + link_info[
+                                'name'] + link_info['anchor'] + ')'
+                else:
+                    link += '[' + link_info['name'] + link_info[
+                        'anchor'] + '](' + link_info['parent'] + link_info[
+                            'date'] + link_info['name'] + link_info[
+                                'anchor'] + ')'
 
             if not self.nvim.current.line:
                 self.nvim.current.line = link
@@ -97,4 +109,4 @@ class Markdown_fzf():
                                 'so i didn\'t place a link here."')
 
         except:
-            raise
+            pass

@@ -52,11 +52,12 @@ class LaTeX_viewer():
         Transforms the lines containing fences of code blocks to latex listings
         things or deletes the fences if the fences are latex
         """
-        CODE_BLOCK_REGEX = ''
+        CODE_BLOCK_REGEX = r'(?P<prefix>^```(?P<name>' + '|'.join(
+            self.fencenames) + ')?)'
 
-        if :
-        else:
-            return None
+        # if :
+        # else:
+        #     return None
 
     def input_handler(self, relative_link):
         """

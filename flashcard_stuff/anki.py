@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 import re
 
 
@@ -18,11 +19,12 @@ class BatchCards():
         """
         self.nvim = nvim
         self.md_notes = Path('/Users/mike/Documents/markdown_notes').glob(
-            '**/[!\.]*')
+                '**/[!\.]*')
         self.cloze_target = Path(
             '/Users/mike/Documents/markdown_notes/anki-cloze.txt')
         self.img_target = Path(
             '/Users/mike/Documents/markdown_notes/anki-img.txt')
+        self.anki_media = Path('/Users/mike/Library/Application Support/Anki2/User 1/collection.media') 
 
     def return_notes(self):
         """
@@ -41,6 +43,17 @@ class BatchCards():
         # self.nvim.command('echo "' + str(notes) + '"')
         return notes
 
+    def image_link(self, link):
+        """
+        Takes the line in the current loop and if it is a link to an image then
+        it copies the linked image to the anki collection media path
+        """
+        link_info = link.groupdict()
+        self.nvim.command('echo "' + str(link_info) +'"')
+        html_link = r'<img src="'+link_info['url']+'">'
+
+        return html_link
+
     def get_cards(self, note, lines):
         """
         Scans the file for cards to add to flash cards later, also for img
@@ -49,24 +62,37 @@ class BatchCards():
         """
         cloze_cards = []
         img_cards = []
+        LINK_REGEX = r'^\!?\[(?P<name>.*)\]\((?P<url>.*)\)'
+        CLOZE_REGEX = r'^(?P<upper_fence>\`\`\`(?P<name>anki-cloze))$'
+        IMAGE_REGEX = r'^(?P<upper_fence>\`\`\`(?P<name>anki-img))$'
 
         for i in range(len(lines)):
             card = ''
-            anki_cloze = re.search(
-                r'^(?P<upper_fence>\`\`\`(?P<name>anki-cloze))$', lines[i])
-            anki_img = re.search(
-                r'^(?P<upper_fence>\`\`\`(?P<name>anki-img))$', lines[i])
+            anki_cloze = re.search(CLOZE_REGEX , lines[i])
+            anki_img = re.search(IMAGE_REGEX, lines[i])
+
+            # I wan't for both the cards to convert markdownlinks to css links
+
+            # Here operations for cloze cards go
             if anki_cloze:
                 lines[i] = '```anki-cloze [ADDED]\n'
                 for j in range(len(lines[i + 1:])):
+                    link = re.search(LINK_REGEX, lines[i + 1 + j])
+                    if link:
+                        lines[i + 1 + j] = self.image_link(link)
                     end = re.search(r'(?P<end>^\`\`\`)', lines[i + 1 + j])
                     if end:
                         break
                     card = card + lines[i + 1 + j]
                 cloze_cards.append(card)
+
+            # Here operations for image cards go
             if anki_img:
                 lines[i] = '```anki-img [ADDED]\n'
                 for j in range(len(lines[i + 1:])):
+                    link = re.search(LINK_REGEX, lines[i + 1 + j])
+                    if link:
+                        lines[i + 1 + j] = self.image_link(link)
                     end = re.search(r'(?P<end>^\`\`\`)', lines[i + 1 + j])
                     if end:
                         break

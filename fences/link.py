@@ -39,5 +39,7 @@ class Link_handler():
                 self.nvim.command(programs['img'] + link_info['link'])
             elif link_info['suffix'] == '.md':
                 self.nvim.command(programs['md'] + link_info['link'])
+            elif link_info['suffix'] == None:
+                self.nvim.command(programs['md'] + link_info['link'])
         except:
             self.nvim.command(programs['http'] + link_info['link'])
