@@ -92,3 +92,8 @@ class MarkdownNeovimPortal():
     def note_sink_portal(self, lines):
         my_fzf = fzf.Markdown_fzf(self.nvim)
         my_fzf.markdown_note_sink(lines)
+
+    @pynvim.function('MarkdownLinkTags')
+    def MarkdownLinkTags(self, lines):
+        my_fzf = fzf.Markdown_fzf(self.nvim)
+        my_fzf.fzf_tag_linker(lines)

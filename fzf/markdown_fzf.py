@@ -25,10 +25,12 @@ class Markdown_fzf():
             fzf_list = fzf_list.split(' ')
             self.nvim.command(':cd %:h')
             match = re.match('^@.*', fzf_list[-2])
+            parent = '/Users/mike/Documents/markdown_notes/'
+
             if match:
-                self.nvim.command(':e ' + fzf_list[1])
+                self.nvim.command(':e ' + parent + fzf_list[0])
             else:
-                self.nvim.command(':e ' + fzf_list[-2] + fzf_list[1])
+                self.nvim.command(':e ' + parent + fzf_list[-2] + fzf_list[0])
         except:
             pass
 
@@ -108,5 +110,34 @@ class Markdown_fzf():
                 self.nvim.command(':echo "the line is not empty,'+\
                                 'so i didn\'t place a link here."')
 
+        except:
+            pass
+
+    def fzf_tag_linker(self, lines):
+        """
+        Similar to markdown_tag_sink, but instead links to selected files. So
+        we know that the fzf search with multiple selections returns just a
+        list with all selections.
+        """
+        try:
+            # self.nvim.command(':echo "' + str(lines) + '"')
+            links = []
+            for line in lines[0]:
+                note_info = re.sub(r'\s+', r' ', line)
+                note_info = note_info.split(' ')
+                # self.nvim.command(':echo "' + str(note_info) + '"')
+                match = re.match('^@.*', note_info[-2])
+                if not match:
+                    links.append('[' + note_info[0] + ']' + '(' +
+                                 note_info[-2] + note_info[0] + ')')
+                else:
+                    links.append('[' + note_info[0] + ']' + '(' +
+                                 note_info[0] + ')')
+
+            # parent = '/Users/mike/Documents/markdown_notes/'
+
+            pos = self.nvim.current.window.cursor
+            currentline = pos[0]
+            self.nvim.current.buffer[currentline:currentline] = links
         except:
             pass
