@@ -32,14 +32,21 @@ class Link_handler():
         link_info = self.link
         programs = self.programs
         images = self.img
-        self.nvim.command('let b:message="' + str(link_info) + '"')
-        self.nvim.command('echo b:message')
-        try:
-            if link_info['suffix'] in images:
-                self.nvim.command(programs['img'] + link_info['link'])
-            elif link_info['suffix'] == '.md':
-                self.nvim.command(programs['md'] + link_info['link'])
-            elif link_info['suffix'] == None:
-                self.nvim.command(programs['md'] + link_info['link'])
-        except:
-            self.nvim.command(programs['http'] + link_info['link'])
+
+        # self.nvim.command('let b:message="' + str(link_info) + '"')
+        # self.nvim.command('echo b:message')
+
+        # {'http': 'https://', 'link': 'www.youtube.com/watch?v=qULTwquOuT4'}
+
+        if 'http' in link_info.keys():
+            # self.nvim.command('let b:message="' +
+            #                   str(programs['http'] + link_info['link']) + '"')
+            # self.nvim.command('echo b:message')
+            self.nvim.command(programs['http'] + '"' + link_info['http'] +
+                              link_info['link'] + '"')
+        elif link_info['suffix'] in images:
+            self.nvim.command(programs['img'] + link_info['link'])
+        elif link_info['suffix'] == '.md':
+            self.nvim.command(programs['md'] + link_info['link'])
+        elif link_info['suffix'] is None:
+            self.nvim.command(programs['md'] + link_info['link'])
