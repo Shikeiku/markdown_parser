@@ -4,8 +4,7 @@ import re
 
 class LaTeX_viewer():
     """
-    Reads the markdown file and substitutes markdown headings and other
-    formatting things to latex things
+    Reads the markdown file and latexifies it
     """
     def __init__(self, nvim):
         self.nvim = nvim

@@ -143,7 +143,7 @@ class Fence():
         self.nvim.current.buffer = self.nvim.buffers[mdbuffer]
 
         row = fences['upper']['row']
-        self.nvim.current.buffer[row:row] = contents + ['']
+        self.nvim.current.buffer[row:row] = contents
         del self.nvim.current.buffer[row - 1]
         # contents = b[:]
 

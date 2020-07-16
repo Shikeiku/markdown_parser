@@ -46,14 +46,6 @@ class EnterPythonFence():
         self.nvim.command(':w')
         self.nvim.command(':e ' + self.scratch)
 
-        # Maybe later I can change this to not hard coded, using the window and
-        # buffers lists in the nvim class
-        python_window = self.nvim.current.window
-        self.nvim.command(':vs')
-        self.nvim.command('IronRepl')
-        self.nvim.command('term')
-        self.nvim.current.window = python_window
-
         # self.nvim.command('let b:message="' + str(self.buf) + '"')
         # self.nvim.command('echo b:message')
 

@@ -20,7 +20,7 @@ class FenceLatex():
         yet.
         """
         start, end = self.fences['upper']['row'], self.fences['lower']['row']
-        del self.buf[start - 1:end]
+        del self.buf[start - 1:end - 1]
         self.buf[start - 1] = self.writing_placeholder
 
     def scratch_write(self):
