@@ -83,6 +83,14 @@ class MarkdownNeovimPortal():
         LaTeX_view = latex_view.LaTeX_viewer(self.nvim)
         LaTeX_view.view_latex()
 
+    @pynvim.command('LaTeXviewCC')
+    def cc_latex_view(self):
+        """
+        Opens the current file and all linked files in latex mode.
+        """
+        LaTeX_view = latex_view.LaTeX_viewer(self.nvim)
+        LaTeX_view.view_latex(files='ccl')
+
     @pynvim.function('Markdowntags')
     def tag_sink_portal(self, lines):
         my_fzf = fzf.Markdown_fzf(self.nvim)

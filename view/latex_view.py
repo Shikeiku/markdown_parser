@@ -18,7 +18,8 @@ class LaTeX_viewer():
             'subsubsection': r'^####\s(?P<name>.*)',
             'paragraph': r'^#####\s(?P<name>.*)',
             'subparagraph': r'^######\s(?P<name>.*)',
-            'code': r'(?P<name>^```.*)'
+            'code': r'(?P<name>^```.*)',
+            'inlineImage': r''
         }
         self.function_dict = {
             'chapter': self.latexSections,
@@ -96,6 +97,13 @@ class LaTeX_viewer():
         """
         if files == 'current':
             lines = self.nvim.current.buffer[:]
+
+        if files == 'ccl':
+            lines = self.nvim.command("") 
+            # [{'lnum': 12, 'bufnr': 2, 'col': 45, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': '            ''/Users/mike/.data/nvim/scratch_files/LaTe
+# X/scratch.tex'')'}, {'lnum': 92, 'bufnr': 2, 'col': 26, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': '    def view_latex(self, files=''cur
+# rent''):'}, {'lnum': 97, 'bufnr': 2, 'col': 12, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': '        if files == ''current'':'}, {'lnum':
+ # 100, 'bufnr': 2, 'col': 12, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': '        if files == ''ccl'':'}]
 
         for i in range(len(lines)):
             target = self.latexRegexDictionary(lines[i])

@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 
-
 class Markdown_fzf():
     """
     Contains all fzf sink functions
@@ -12,7 +11,7 @@ class Markdown_fzf():
         self.nvim = nvim
         self.notes_dir = '/Users/mike/Documents/markdown_notes/'
         self.images_dir = '/Users/mike/Documents/markdown_images/'
-        self.img = ['.jpeg', '.png', '.jpg', '.svg', '.pdf']
+        self.img = ['.jpeg', '.png', '.jpg', '.svg']
 
     def markdown_tag_sink(self, lines):
         """

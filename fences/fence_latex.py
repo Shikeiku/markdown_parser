@@ -38,11 +38,12 @@ class FenceLatex():
     def open_buffers(self):
         # md_buffer = self.nvim.current.buffer
 
-        self.nvim.command(':e! ' + self.scratch)
+        self.nvim.command(':w')
+        self.nvim.command(':e ' + self.scratch)
 
         # Maybe later I can change this to not hard coded, using the window and
         # buffers lists in the nvim class
-        self.nvim.command(':normal ,ll')
+        # self.nvim.command(':normal ,ll')
 
         # self.nvim.command('let b:message="' + str(self.buf) + '"')
         # self.nvim.command('echo b:message')
@@ -94,6 +95,7 @@ class FenceAnki():
     def open_buffers(self):
         # md_buffer = self.nvim.current.buffer
 
+        self.nvim.command(':w')
         self.nvim.command(':e ' + self.scratch)
 
         # Maybe later I can change this to not hard coded, using the window and

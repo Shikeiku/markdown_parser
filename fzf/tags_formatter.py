@@ -12,7 +12,7 @@ except:
 t = open(str(tags), 'r')
 lines = t.readlines()
 
-TAG_REGEX = r'\/\^(?P<tags>[@a-zA-Z0-9\_\-\s]+)\$\/'
+TAG_REGEX = r'{(?P<tags>[@a-zA-Z0-9\_\-\s\,]+)}'
 TAG_REGEX_PRIMARY = r'(?P<ptag>^[a-zA-Z0-9\_\-]+)'
 FILE_REGEX = r'\t(?P<parent>[\/a-zA-Z0-9_\-\@\#\%\!\$\^\&]*?)(?P<date_string_name>(?P<date_string>[\d\_\-hm]+s\_)?(?P<name>[a-zA-Z0-9\_\-]+\.[a-z]+))'
 
@@ -22,16 +22,15 @@ def get_tags():
     for i in range(len(lines)):
         # print(lines[i])
         tags = re.search(TAG_REGEX, lines[i])
-        primary_tag = re.search(TAG_REGEX_PRIMARY, lines[i])
         filename = re.search(FILE_REGEX, lines[i])
 
         if tags:
             # print(tags[0].replace('@', '').split(' '))
-            tags = tags.group('tags').replace('@', '').split(' ')
-            empty_flag = 'lowered'
-        elif not tags and primary_tag:
-            tags = primary_tag.group('ptag').split()
-            empty_flag = 'raised'
+            tags = tags.group('tags').split(', ')
+            # empty_flag = 'lowered'
+        # elif not tags and primary_tag:
+        #     tags = primary_tag.group('ptag').split()
+        #     empty_flag = 'raised'
 
         if filename:
             if filename.group('date_string'):
@@ -50,12 +49,12 @@ def get_tags():
                     'tags': note_info['tags'],
                     'date': note_info['date_string'],
                 }
-            elif empty_flag == 'lowered':
-                fzf_info[full_path] = {
-                    'name': note_info['name'],
-                    'tags': note_info['tags'],
-                    'date': note_info['date_string'],
-                }
+            # elif empty_flag == 'lowered':
+            #     fzf_info[full_path] = {
+            #         'name': note_info['name'],
+            #         'tags': note_info['tags'],
+            #         'date': note_info['date_string'],
+            #     }
 
             # print(filename)
             # print(filename[0][0])
@@ -91,8 +90,9 @@ def print_fzf_lines(fzf_info):
         # for tag in fzf_info[fn]['tags']:
         # if tag != '':
         print_data.append([
-            fzf_info[fn]['name'],
-            " ".join(['@' + tag for tag in fzf_info[fn]['tags'] if tag != '']),
+            fzf_info[fn]['name'], '{' +
+            ", ".join([tag
+                       for tag in fzf_info[fn]['tags'] if tag != '']) + '}',
             ' ' + fzf_info[fn]['date']
         ])
 
