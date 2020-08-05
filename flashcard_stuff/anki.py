@@ -19,12 +19,14 @@ class BatchCards():
         """
         self.nvim = nvim
         self.md_notes = Path('/Users/mike/Documents/markdown_notes').glob(
-                '**/[!\.]*')
+            '**/[!\.]*')
         self.cloze_target = Path(
             '/Users/mike/Documents/markdown_notes/anki-cloze.txt')
         self.img_target = Path(
             '/Users/mike/Documents/markdown_notes/anki-img.txt')
-        self.anki_media = Path('/Users/mike/Library/Application Support/Anki2/User 1/collection.media') 
+        self.anki_media = Path(
+            '/Users/mike/Library/Application Support/Anki2/User 1/collection.media'
+        )
 
     def return_notes(self):
         """
@@ -50,13 +52,13 @@ class BatchCards():
         """
         # This is just what it returns
         link_info = link.groupdict()
-        self.nvim.command('echo "' + str(link_info) +'"')
-        html_link = r'<img src="'+link_info['url']+'">'
+        self.nvim.command('echo "' + str(link_info) + '"')
+        html_link = r'<img src="' + link_info['url'] + '">'
 
         # Here I just put the image in anki collections media if it is not in
         # there yet
         file_in_md = Path(link_info['url'])
-        file_in_anki = self.anki_media/file_in_md.name
+        file_in_anki = self.anki_media / file_in_md.name
         if file_in_anki.exists():
             pass
         else:
@@ -78,7 +80,7 @@ class BatchCards():
 
         for i in range(len(lines)):
             card = ''
-            anki_cloze = re.search(CLOZE_REGEX , lines[i])
+            anki_cloze = re.search(CLOZE_REGEX, lines[i])
             anki_img = re.search(IMAGE_REGEX, lines[i])
 
             # I wan't for both the cards to convert markdownlinks to css links
@@ -132,16 +134,18 @@ class BatchCards():
         # self.nvim.command(':echo "' + str(cards['cloze']) + '"')
         with open(self.cloze_target, 'w') as c:
             for card in cards['cloze']:
-                card = card.replace('\n',
-                                    ' ').replace('<++divide cloze/prompt++>',
-                                                 '\t')
+                card = card.replace('\n', '<br>')
+                card = card.replace('<++divide cloze/prompt++><br>', '\t')
+                card = card.replace('{{', '{ {')
+                card = card.replace('}}', '} }')
+                card = re.sub(r'(\$.*?\$)', r'[latex]\1[/latex]', card)
+                card = re.sub(r'(\\\[.*?\\\])', r'[latex]\1[/latex]', card)
                 c.write(card)
                 c.write('\n')
 
         with open(self.img_target, 'w') as i:
             for card in cards['img']:
-                card = card.replace('\n',
-                                    ' ').replace('<++divide prompt/img++> ',
-                                                 '\t')
+                card = card.replace('\n', '<br>')
+                card = card.replace('<++divide prompt/img++>', '\t')
                 i.write(card)
                 i.write('\n')
