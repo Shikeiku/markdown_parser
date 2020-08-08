@@ -1,7 +1,7 @@
 import re
-import neovim_plugins.markdown_parser.fences.fence_latex as fence_latex
-import neovim_plugins.markdown_parser.fences.fence_python as fence_python
-import neovim_plugins.markdown_parser.fences.link as fence_link
+import neovim_plugins.markdown_parser.fence_latex as fence_latex
+import neovim_plugins.markdown_parser.fence_python as fence_python
+import neovim_plugins.markdown_parser.link as fence_link
 
 
 class Fence():
