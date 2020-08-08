@@ -1,14 +1,11 @@
 import pynvim
 from pathlib import Path
 
-import neovim_plugins.markdown_parser.fences.fence as fence
+import neovim_plugins.markdown_parser.fence as fence
 import neovim_plugins.markdown_parser.flashcard_stuff.anki as anki
 import neovim_plugins.markdown_parser.fzf.markdown_fzf as fzf
-import neovim_plugins.markdown_parser.view.latex_view as latex_view
+import neovim_plugins.markdown_parser.viewer as viewer
 import neovim_plugins.markdown_parser.new_note as new_note
-# import neovim_plugins.markdown_parser.fences.close as close
-# import importlib
-# importlib.reload(fence)
 
 # -- How to add a comment
 # pynvim.plugin.command(name, nargs=0, complete=None, range=None, count=None, bang=False, register=False, sync=False, allow_nested=False, eval=None)
@@ -41,10 +38,6 @@ class MarkdownNeovimPortal():
     """
     def __init__(self, nvim):
         self.nvim = nvim
-
-    # @pynvim.function('Testfunction', sync=True)
-    # def testfunction(self, args):
-    #     self.fence.testfunction()
 
     @pynvim.command('EnterFence')
     def enterfence(self):
@@ -80,7 +73,7 @@ class MarkdownNeovimPortal():
         """
         Opens the current file and all linked files in latex mode.
         """
-        LaTeX_view = latex_view.LaTeX_viewer(self.nvim)
+        LaTeX_view = viewer.LaTeX_viewer(self.nvim)
         LaTeX_view.view_latex()
 
     @pynvim.command('LaTeXviewCC')
@@ -88,7 +81,7 @@ class MarkdownNeovimPortal():
         """
         Opens the current file and all linked files in latex mode.
         """
-        LaTeX_view = latex_view.LaTeX_viewer(self.nvim)
+        LaTeX_view = viewer.LaTeX_viewer(self.nvim)
         LaTeX_view.view_latex(files='ccl')
 
     @pynvim.function('Markdowntags')
