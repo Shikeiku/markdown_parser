@@ -2,10 +2,11 @@ import pynvim
 from pathlib import Path
 
 import neovim_plugins.markdown_parser.fence as fence
-import neovim_plugins.markdown_parser.flashcard_stuff.anki as anki
-import neovim_plugins.markdown_parser.fzf.markdown_fzf as fzf
+import neovim_plugins.markdown_parser.anki as anki
+import neovim_plugins.markdown_parser.fzf as fzf
 import neovim_plugins.markdown_parser.viewer as viewer
 import neovim_plugins.markdown_parser.new_note as new_note
+import neovim_plugins.markdown_parser.link as link
 
 # -- How to add a comment
 # pynvim.plugin.command(name, nargs=0, complete=None, range=None, count=None, bang=False, register=False, sync=False, allow_nested=False, eval=None)
@@ -75,14 +76,6 @@ class MarkdownNeovimPortal():
         """
         LaTeX_view = viewer.LaTeX_viewer(self.nvim)
         LaTeX_view.view_latex()
-
-    @pynvim.command('LaTeXviewCC')
-    def cc_latex_view(self):
-        """
-        Opens the current file and all linked files in latex mode.
-        """
-        LaTeX_view = viewer.LaTeX_viewer(self.nvim)
-        LaTeX_view.view_latex(files='ccl')
 
     @pynvim.function('Markdowntags')
     def tag_sink_portal(self, lines):
