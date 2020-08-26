@@ -1,7 +1,5 @@
 import docopt
-from mvn.console import console
-
-def richInfo
+from vnnv.console import console
 
 if __name__ == '__main__':
     print(console.size)
