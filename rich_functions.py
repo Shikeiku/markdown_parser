@@ -1,22 +1,34 @@
+from typing import List, Literal
 from rich.console import Console, OverflowMethod
+from rich.theme import Theme
 
-console = Console(width=100, record=True)
+custom_theme = Theme({
+    "info": "dim cyan",
+    "succes": "green",
+    "error": "bold red",
+    "warning": "green",
+    "danger": "bold red"
+})
+
+console.print(i)
+
+console = Console(theme=custom_theme, width=100)  # , record=True)
 
 
-def console_attributes():
+def console_attributes() -> None:
     """
-    @todo Docstring for richConsoleAttributes
+    Docstring for richConsoleAttributes
     """
     size = (console.size.height, console.size.width)
     encoding = console.encoding
     is_terminal = console.is_terminal
     color_sys = console.color_system
-    console.print(locals())
+    console.print('%g' % (size[0]), locals())
 
 
-def logging_and_printing():
+def logging_and_printing() -> None:
     """
-    @todo Docstring for myFunction
+    Docstring for myFunction
     """
     hello = "hello, world"
     # console.print(hello)
@@ -36,7 +48,7 @@ def justify_or_align(style="bold white on blue", **kwargs):
 def overflow(console=Console(width=14),
              string="supercalifragilisticexpialidocious"):
     """
-    @todo Docstring for overflow
+    Docstring for overflow
     """
     overflow_methods: List[OverflowMethod] = ["fold", "crop", "ellipsis"]
     for overflow in overflow_methods:
@@ -47,22 +59,48 @@ def overflow(console=Console(width=14),
 
 def rich_input(string="What is [b]your[/b] [bold red]name[/]? :smiley: "):
     """
-    @todo Docstring for rich_input
+    Docstring for rich_input
     """
     console.input(string)
 
 
+def colors():
+    console.print("DANGER!", style="red on white")
+    console.print("DANGER!", style="bold red on white")
+    console.print("DANGER!", style="conceal")
+    console.print("DANGER!", style="italic")
+    console.print("DANGER!", style="reverse")
+    console.print("DANGER!", style="strike")
+    console.print("DANGER!", style="underline yellow on green")
+    console.print("DANGER!", style="frame")
+    console.print("DANGER!", style="encircle")
+    console.print("DANGER!", style="overline")
+    console.print("DANGER! [not bold]nevermind[/not bold]", style="bold")
+    console.print("DANGER!")
+
+
+def print_theme():
+    console.print("This is information", style="info")
+    console.print("Something terrible happened", style="danger")
+    console.print("[warning]The pod bay doors are locked[/warning]")
+    console.print("This is a succes! yay", style="succes")
+    console.print("This is an eror", style="error")
+
+
 if __name__ == "__main__":
-    console.print("\nprinting console_attributes")
-    console_attributes()
-    console.print("\nprinting logging and printing")
-    logging_and_printing()
-    console.print("\nprinting justify_or_align")
-    justify_or_align()
-    console.print("\noverflow:")
-    overflow()
-    console.print("\nrich_input")
-    rich_input()
+    # console.print("\nprinting console_attributes")
+    # console_attributes()
+    # console.print("\nprinting logging and printing")
+    # logging_and_printing()
+    # console.print("\nprinting justify_or_align")
+    # justify_or_align()
+    # console.print("\noverflow:")
+    # overflow()
+    # console.print("\nrich_input")
+    # rich_input()
     # text = console.export_text(clear=True)
+    # console_attributes()
 
-
+    # Styling functions
+    colors()
+    print_theme()
