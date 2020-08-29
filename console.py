@@ -1,7 +1,13 @@
+import os
+import json
 from rich.console import Console
 from rich.theme import Theme
 
-from vnnv.config import cfg
+
+config_file = os.environ.get("VNNV_CONFIG", "$HOME/.dotfiles/vnnv/config.json")
+
+with open(os.path.expandvars(config_file)) as c:
+    cfg = json.load(c)
 
 # print(cfg["style"])
 
