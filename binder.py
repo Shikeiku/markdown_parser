@@ -2,49 +2,44 @@ import os
 import re
 import shutil
 from pathlib import Path
+
 from rich import print
+from rich.panel import Panel
+
+from vnnv.config import cfg, console
 
 
-class Binder():
+class Binder:
     """
-    Docstring for Binder
+    @todo: docstring for binder
     """
-    def __init__(self, base=None, **kwargs):
-        """@todo: to be defined.
+    def __init__(self, path=None, check=None, **kwargs):
+        """@todo: Docstring for init method.
 
-        :kwargs: @todo
+        /path=None/ @todo
+        /**cfg/ @todo
 
         """
 
         self.modified = False
+        self._init_load_binder(path, check)
 
-        self._init_load_filenames(base)
-
-        # self.filenames_to_title = {
-        #     f['name']: f['title']
-        #     for f in filenames.keys()
-        # }
-
-    def _init_load_filenames(self, base):
+    def _init_load_binder(self, path, check) -> None:
         """
-        @todo Docstring for load_filenames
+        @todo: Docstring for _init_load_binder
         """
+        if check == None:
+            if path == None:
+                console.print(
+                    Panel.fit('No notes directory was given!', style='error'))
 
-        basepath = Path(base)
-        filenames = list(basepath.glob('*.md'))
-        return filenames
-
-    def filename_to_date_and_title(self, filenames)
-        file_date_title = {
-            f: {
-                'date': f"{}",
-                'title': f
-            }
-            for f in filenames
-        }
-        print(file_date_title)
-
-        return file_date_title
+            path_path = Path(os.path.expandvars(path))
+            # console.print('Path to notes directory is [bold]', path_path, style='info')
+            if not (path_path / 'index.md').exists():
+                console.print(
+                    Panel.fit('An invalid notes directory was given!',
+                              style='error'))
+        self.path = path_path
 
     def __enter__(self):
         return self
@@ -52,7 +47,7 @@ class Binder():
     def __exit__(self, exception_type, exception_value, traceback):
         if self.modified:
             print('remember to save changes and sync to github')
-    
+
     def add_note(self, *args, **kwargs):
         return
 
@@ -63,10 +58,8 @@ class Binder():
         return
 
 
-
-cfg = {'base': '/Users/mike/Documents/markdown_notes'}
-
-my_binder = Binder(**cfg)
 # print(my_binder.base)
-width, height = shutil.get_terminal_size()
-print(width, height)
+# width, height = shutil.get_terminal_size()
+# print(width, height)
+if __name__ == '__main__':
+    my_binder = Binder(**cfg)

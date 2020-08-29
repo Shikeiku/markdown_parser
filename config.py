@@ -9,7 +9,5 @@ config_file = os.environ.get("VNNV_CONFIG", "$HOME/.dotfiles/vnnv/config.json")
 with open(os.path.expandvars(config_file)) as c:
     cfg = json.load(c)
 
-# print(cfg["style"])
-
 console = Console(theme=Theme(cfg["style"]), width=200)
-# console.print(console)
+

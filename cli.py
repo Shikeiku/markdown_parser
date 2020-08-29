@@ -1,26 +1,29 @@
 #!/Users/mikevink/.dotfiles/virtualenvs/vnnv/bin/python3
 """Usage: vnnv [-h]
-       vnnv list [-st TAGS ...]
-       vnnv read [-lt TAGS ...]
-       vnnv anki [-t TAGS ...]
-       vnnv i-mode [-t TAGS ...]
+       vnnv list [-hst] [ARGUMENTS ...]
+       vnnv read [-hlt] [ARGUMENTS ...]
+       vnnv anki [-hbt] [ARGUMENTS ...]
+       vnnv i-mode [-ht] [ARGUMENTS ...]
 
-vnnv        if called without arguments prints some info on notes
--h --help   show this
-list        list notes based on tags, default: marked
-list -t     specify
-read -l     comp
+options:
+-h --help   show this, use after command to show specific help
+
+commands:
+list        list notes based on tags or something else
+read        read notes in latex or in html
+anki        add flashcards in notes to anki
+imode       interactively select notes and review them one by one
 """
 from docopt import docopt
 from typing import List, Dict
 
-from vnnv.console import console
-from vnnv.config import cfg
+from vnnv.config import console, cfg
 
 opts = docopt(__doc__, help=False)
 
 # console.print(dict(opts))
 # console.print(cfg)
+
 
 def infoNotes() -> None:
     """
