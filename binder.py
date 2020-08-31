@@ -6,6 +6,7 @@ from pathlib import Path
 
 from rich.panel import Panel
 from rich.table import Table
+from rich.prompt import Prompt, Confirm
 
 from vnnv.note import Note
 from vnnv.config import cfg, console
@@ -44,7 +45,7 @@ class Binder:
 
         self.path = path_path
 
-    def preambles_to_list(self) -> List:
+    def collect_preambles(self) -> List:
         """
         @todo: Docstring for note_generator
         """
@@ -55,13 +56,96 @@ class Binder:
         ]
         # console.print(list(self.path.glob('*.md')))
 
-    def tabularize_notes(self, query) -> None:
+    def search_notes(self, tags, dates) -> None:
+        """
+        @todo: Docstring for search_notes
+        """
+        # console.print(self.collect_preambles())
+        console.print(tags)
+        # notes = self.collect_preambles()
+        # console.print(notes)
+        if tags is None and dates is None:
+            console.print('No valid query was given to search notes with!',
+                          style='warning')
+            return
+        if tags is not None:
+            notes = [
+                note for note in [
+                    tagged_note for tagged_note in self.collect_preambles()
+                    if 'tags' in tagged_note.keys()
+                ] if set([tag.lower()
+                          for tag in tags]).issubset(set(note['tags']))
+            ]
+        # console.print(notes)
+        return notes
+
+    def sort_by_date(self, notes: List) -> List:
+        """
+        @todo: Docstring for sort_by_date
+        """
+        def date_key(note):
+            return [
+                note['date'][key] for key in
+                ['second', 'minute', 'hour', 'day', 'month', 'year'][::-1]
+            ]
+
+        notes = sorted(notes, key=date_key)
+        return notes
+
+    def render_date_dict(self, date_dict):
+        numeric_to_name = {
+            '01': 'Jan',
+            '02': 'Feb',
+            '03': 'Mar',
+            '04': 'Apr',
+            '05': 'May',
+            '06': 'Jun',
+            '07': 'Jul',
+            '08': 'Aug',
+            '09': 'Sep',
+            '10': 'Oct',
+            '11': 'Nov',
+            '12': 'Dec'
+        }
+        rendered_date = date_dict['day'] + ' ' + numeric_to_name.get(
+            date_dict['month']) + ' ' + date_dict['year']
+        return rendered_date
+
+    def tabularize_notes(self,
+                         TAGS=None,
+                         DATES=None,
+                         SORT=None,
+                         **opts) -> None:
         """
         @todo: Docstring for tabularize_notes
         """
-        table_title = 'notes for query: ' + query.split()
+        notes = self.search_notes(TAGS, DATES)
+        notes = self.sort_by_date(notes)
+        console.print(notes)
+        table_title = 'notes '
+        if TAGS is not None:
+            table_title += 'tagged with: ' + ', '.join(TAGS)
+        if DATES is not None:
+            table_title += DATES
         table = Table(title=table_title)
-        pass
+        table.add_column('tags', width=60)
+        table.add_column('date')
+        table.add_column('bib')
+        table.add_column('title')
+        console.print(table_title)
+        # console.print(table_title, style='info')
+        for note in notes:
+            if 'bib' not in note.keys():
+                note['bib'] = 'None'
+            else:
+                match = re.match(r'@.*\{(.*),', note['bib'])
+                note['bib'] = match.group(1)
+            table.add_row(', '.join(note['tags']),
+                          self.render_date_dict(note['date']), note['bib'],
+                          note['title'])
+        console.clear()
+        console.print(table)
+        # Prompt.ask("Continue?", choices=['y', 'n'])
 
     def __enter__(self):
         return self
@@ -83,5 +167,6 @@ class Binder:
 if __name__ == '__main__':
     my_binder = Binder(**cfg)
     # console.print(my_binder.note_list())
-    console.print(my_binder.preambles_to_list())
+    # console.print(my_binder.collect_preambles())
     # print(my_binder.note_generator())
+    my_binder.tabularize_notes(['MollerStruth'])
