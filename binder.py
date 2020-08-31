@@ -1,11 +1,13 @@
 import os
 import re
 import shutil
+from typing import List, Dict
 from pathlib import Path
 
-from rich import print
 from rich.panel import Panel
+from rich.table import Table
 
+from vnnv.note import Note
 from vnnv.config import cfg, console
 
 
@@ -39,7 +41,27 @@ class Binder:
                 console.print(
                     Panel.fit('An invalid notes directory was given!',
                               style='error'))
+
         self.path = path_path
+
+    def preambles_to_list(self) -> List:
+        """
+        @todo: Docstring for note_generator
+        """
+        return [
+            Note(self, note_path).preamble
+            for note_path in list(self.path.glob('*.md'))
+            if Note(self, note_path).preamble is not None
+        ]
+        # console.print(list(self.path.glob('*.md')))
+
+    def tabularize_notes(self, query) -> None:
+        """
+        @todo: Docstring for tabularize_notes
+        """
+        table_title = 'notes for query: ' + query.split()
+        table = Table(title=table_title)
+        pass
 
     def __enter__(self):
         return self
@@ -54,12 +76,12 @@ class Binder:
     def delete_note(self, *args, **kwargs):
         return
 
-    def list_notes(self, *args, **kwargs):
-        return
-
 
 # print(my_binder.base)
 # width, height = shutil.get_terminal_size()
 # print(width, height)
 if __name__ == '__main__':
     my_binder = Binder(**cfg)
+    # console.print(my_binder.note_list())
+    console.print(my_binder.preambles_to_list())
+    # print(my_binder.note_generator())
