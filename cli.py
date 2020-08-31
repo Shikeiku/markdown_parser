@@ -1,9 +1,6 @@
 #!/Users/mikevink/.dotfiles/virtualenvs/vnnv/bin/python3
 """Usage: vnnv [-h]
-       vnnv list [-hst] [ARGUMENTS ...]
-       vnnv read [-hlt] [ARGUMENTS ...]
-       vnnv anki [-hbt] [ARGUMENTS ...]
-       vnnv i-mode [-ht] [ARGUMENTS ...]
+       vnnv list [ -t TAGS ... ] [ -d DATES ... ] [ -s KEY ]
 
 options:
 -h --help   show this, use after command to show specific help
@@ -17,6 +14,8 @@ imode       interactively select notes and review them one by one
 from docopt import docopt
 from typing import List, Dict
 
+
+from vnnv.binder import Binder
 from vnnv.config import console, cfg
 
 opts = docopt(__doc__, help=False)
@@ -42,7 +41,20 @@ def listNotes(**opts) -> None:
     #**opts# @todo
 
     """
-    console.print(listNotes.__doc__)
+    if opts['--help']:
+        console.print(listNotes.__doc__)
+    # console.print(listNotes.__code__.co_varnames)
+    if not opts['-d']:
+        opts['DATES'] = None
+    if not opts['-t']:
+        opts['TAGS'] = None
+    if not opts['-s']:
+        opts['KEY'] = None
+    console.print(opts)
+    # console.print(list)
+    # console.print(TAGS)
+    with Binder(**cfg) as b:
+        b.tabularize_notes(**opts)
 
 
 def readNotes(**opts) -> None:
