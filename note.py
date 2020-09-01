@@ -1,6 +1,6 @@
 import re
 from rich.panel import Panel
-from pathlib import Path
+from pathlib import Path, PosixPath
 from typing import ClassVar, List, Dict, AnyStr
 
 from vnnv.config import console
@@ -14,25 +14,40 @@ class Note:
     def __init__(self, binder: ClassVar, note):
         """@todo: to be defined."""
         self.b = binder
-        self.n = note
-        self._init_preamble()
+        self._init_note(note)
 
-    def _init_preamble(self) -> None:
+    def _init_note(self, note):
+        # console.print(str(note))
+        if not isinstance(note, PosixPath):
+            # console.print('Note path given is not PosixPath!', style='warning')
+            note = Path(note)
+            if not note.exists():
+                console.print('After converting to posixpath it was invalid! Trying to add b.path', style='warning')
+                note = self.b.path / note
+                if not note.exists():
+                    console.print('The note does not exist!', style='error')
+                else:
+                    self.n = note
+            else:
+                self.n = note
+            return
+        else:
+            # console.print('Testing the posixpath')
+            if not note.exists():
+                console.print('The path is not valid!', style='warning')
+            else:
+                self.n = note
+
+            # note = Path(note)
+            # if not note.exists():
+            #     console.print(Panel.fit('Error invalid note path!'), style='error')
+            # else:
+            #     self.n = note
+
+    def parse_preamble(self) -> None:
         """
         @todo: Docstring for _init_preamble
         """
-        # Here there should be some code ensuring that the note could be a
-        # string of the title of the note, a string of the absolute path, and a
-        # pathlib object.
-        #
-        #
-        # print(self.n)
-        # try:
-        #     if not Path(self.n).exists():
-        #         self.n = b.path / self.n
-        # except:
-        #     raise('Note must be title string or posixpath')
-
         with open(self.n, 'r') as n:
             first = n.readline()
             # preamble = first
@@ -100,7 +115,29 @@ class Note:
             # preamble = preamble_string
 
         # console.print(preamble)
-        self.preamble = preamble
+        return preamble
+
+    def read_lines(self) -> List:
+        """
+        @todo: Docstring for read_lines
+        """
+        console.print('deleting the preamble lines from lines of', self.n)
+        with open(self.n, 'r') as n:
+            lines = n.readlines()
+        i = 0
+        # console.print(lines)
+        while True:
+            match = re.match(r'~~~$', lines[i])
+            if match:
+                del lines[i]
+                # print(lines[i])
+                break
+            else:
+                # print(lines[i])
+                del lines[i]
+            # i += 1
+        # print(lines)
+        return lines
 
 
 if __name__ == '__main__':
