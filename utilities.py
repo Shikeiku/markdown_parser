@@ -2,7 +2,22 @@ from subprocess import call
 import tempfile
 import os
 
-from config import console
+from vnnv.config import console
+
+class cd:
+    """Context manager for changing the current working directory"""
+
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+        self.savedPath = None
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
 
 def editor(filepath):
     """Use EDITOR to edit file at given path"""
@@ -30,7 +45,7 @@ def choose(items, text="Choose from list:"):
     console.print(text)
     for i, element in enumerate(items):
         console.print(f"{i+1}: {element}")
-    console.print("> ", nl=False)
+    console.print("> ")
 
     while True:
         choice = readchar.readchar()
