@@ -36,14 +36,22 @@ def infoNotes() -> None:
 
 
 def listNotes(**opts) -> None:
-    """
-    @todo Docstring for listNotes
+    """Usage: vnnv list [-h] [ -t TAGS ... ] [ -d DATES ... ] [ -s KEY ]
 
-    #**opts# @todo
+    options:
+    -h --help       show this help string of vnnv list
+    -t TAGS ...     specify the tags to use as a query for notes to list. Tags
+                    should be words or numbers sepparated by any number of
+                    spaces.
+    -d DATES ...    @todo: Implement query by a range of dates
+    -s KEY ...      @todo: Implement a sort key that is based on tags. For
+                    example a note with tags chapter1 is sorted before a note with tags
+                    chapter2.
 
     """
     if opts['--help']:
         console.print(listNotes.__doc__)
+        return
     # console.print(listNotes.__code__.co_varnames)
     if not opts['-d']:
         opts['DATES'] = None
