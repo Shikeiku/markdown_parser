@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from tempfile import NamedTemporaryFile
 from typing import List, Dict
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from rich.prompt import Prompt, Confirm
 
 from vnnv.note import Note
 from vnnv.config import cfg, console
+from vnnv.convert import markdown_to_latex
 
 
 class Binder:
@@ -50,9 +52,9 @@ class Binder:
         @todo: Docstring for note_generator
         """
         return [
-            Note(self, note_path).preamble
+            Note(self, note_path).parse_preamble()
             for note_path in list(self.path.glob('*.md'))
-            if Note(self, note_path).preamble is not None
+            if Note(self, note_path).parse_preamble() is not None
         ]
         # console.print(list(self.path.glob('*.md')))
 
@@ -61,7 +63,7 @@ class Binder:
         @todo: Docstring for search_notes
         """
         # console.print(self.collect_preambles())
-        console.print(tags)
+        # console.print(tags)
         # notes = self.collect_preambles()
         # console.print(notes)
         if tags is None and dates is None:
@@ -111,17 +113,13 @@ class Binder:
             date_dict['month']) + ' ' + date_dict['year']
         return rendered_date
 
-    def tabularize_notes(self,
-                         TAGS=None,
-                         DATES=None,
-                         SORT=None,
-                         **opts) -> None:
+    def tabularize(self, TAGS=None, DATES=None, SORT=None, **opts) -> None:
         """
-        @todo: Docstring for tabularize_notes
+        @todo: Docstring for tabularize
         """
         notes = self.search_notes(TAGS, DATES)
         notes = self.sort_by_date(notes)
-        console.print(notes)
+        # console.print(notes)
         table_title = 'notes '
         if TAGS is not None:
             table_title += 'tagged with: ' + ', '.join(TAGS)
@@ -132,7 +130,7 @@ class Binder:
         table.add_column('date')
         table.add_column('bib')
         table.add_column('title')
-        console.print(table_title)
+        # console.print(table_title)
         # console.print(table_title, style='info')
         for note in notes:
             if 'bib' not in note.keys():
@@ -146,6 +144,22 @@ class Binder:
         console.clear()
         console.print(table)
         # Prompt.ask("Continue?", choices=['y', 'n'])
+
+    def read(self, TAGS=None, DATES=None, SORT=None, **opts) -> None:
+        """
+        @todo: Docstring for read
+        """
+        console.print(opts['-l'])
+        lines = [
+            Note(
+                self, path['date']['year'] + path['date']['month'] +
+                path['date']['day'] + '-' + path['date']['hour'] + 'h' +
+                path['date']['minute'] + 'm' + path['date']['second'] + 's_' +
+                path['title']).read_lines()
+            for path in self.search_notes(TAGS, DATES)
+        ]
+        console.print(lines)
+        # pass
 
     def __enter__(self):
         return self
@@ -169,4 +183,4 @@ if __name__ == '__main__':
     # console.print(my_binder.note_list())
     # console.print(my_binder.collect_preambles())
     # print(my_binder.note_generator())
-    my_binder.tabularize_notes(['MollerStruth'])
+    my_binder.tabularize(['MollerStruth'])
