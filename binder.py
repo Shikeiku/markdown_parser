@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import subprocess
 from tempfile import NamedTemporaryFile
 from typing import List, Dict
 from pathlib import Path
@@ -12,6 +13,7 @@ from rich.prompt import Prompt, Confirm
 from vnnv.note import Note
 from vnnv.config import cfg, console
 from vnnv.convert import markdown_to_latex
+from vnnv.utilities import call, cd
 
 
 class Binder:
@@ -81,6 +83,12 @@ class Binder:
         # console.print(notes)
         return notes
 
+    def sort_by_tag(self, notes: List) -> List:
+        """
+        @todo: Docstring for sort_by_tag
+        """
+        pass
+
     def sort_by_date(self, notes: List) -> List:
         """
         @todo: Docstring for sort_by_date
@@ -93,6 +101,14 @@ class Binder:
 
         notes = sorted(notes, key=date_key)
         return notes
+
+    def preamble_date_to_string(self, preamble_date) -> str:
+        """
+        @todo: Docstring for preamble_date_to_string
+        """
+        return preamble_date['year'] + preamble_date['month'] + preamble_date[
+            'day'] + '-' + preamble_date['hour'] + 'h' + preamble_date[
+                'minute'] + 'm' + preamble_date['second'] + 's_'
 
     def render_date_dict(self, date_dict):
         numeric_to_name = {
@@ -149,17 +165,55 @@ class Binder:
         """
         @todo: Docstring for read
         """
-        console.print(opts['-l'])
-        lines = [
+
+        notes = self.search_notes(TAGS, DATES)
+        if SORT is not None:
+            notes = self.sort_by_tag(notes)
+        else:
+            notes = self.sort_by_date(notes)
+
+        notes_lines = [
             Note(
-                self, path['date']['year'] + path['date']['month'] +
-                path['date']['day'] + '-' + path['date']['hour'] + 'h' +
-                path['date']['minute'] + 'm' + path['date']['second'] + 's_' +
-                path['title']).read_lines()
-            for path in self.search_notes(TAGS, DATES)
+                self,
+                self.preamble_date_to_string(preamble['date']) +
+                preamble['title']).read_lines() for preamble in notes
         ]
-        console.print(lines)
-        # pass
+
+        if opts['-l']:
+            console.print(
+                'vnnv read -l =', opts['-l'], ':',
+                'Converting the lines of all queried notes to latex')
+            lines = ''.join(markdown_to_latex(notes_lines))
+            latex_build_dir = Path(
+                os.path.expandvars(cfg['latex']['build_dir']))
+        else:
+            console.print(
+                Panel.fit(
+                    'Give a valid option for output format! For example: vnnv read -l ...',
+                    style='error'))
+
+        with NamedTemporaryFile(mode='w+',
+                                prefix='latex_note_',
+                                suffix='.tex',
+                                delete=False) as tf:
+            tf.write(lines)
+            tf.flush()
+            with cd(latex_build_dir):
+                with open('latex_wrapper.tex', 'r+') as wrapper:
+                    lines = wrapper.read()
+                    # console.print(lines)
+                    lines = re.sub(r'(begin[\s\S]*?\\input{).*?(})',
+                                   r'\1' + tf.name + r'\2', lines)
+                    # console.print(lines)
+                    wrapper.seek(0)
+                    wrapper.write(lines)
+                    wrapper.flush()
+                subprocess.call([
+                    'pdflatex', '--interaction=batchmode', 'latex_wrapper.tex'
+                ])
+                subprocess.call(['open', '-a', 'skim', 'latex_wrapper.pdf'])
+
+        # console.print(lines)
 
     def __enter__(self):
         return self
