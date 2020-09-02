@@ -1,5 +1,5 @@
 import re
-from neovim_plugins.markdown_parser.link import Link_handler
+from neovim_plugins.mvn.link import Link_handler
 # import neovim_plugins.markdown_parser.fence_latex as fence_latex
 # import neovim_plugins.markdown_parser.fence_python as fence_python
 # import neovim_plugins.markdown_parser.link as fence_link
