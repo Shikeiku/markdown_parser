@@ -60,7 +60,7 @@ class Binder:
         ]
         # console.print(list(self.path.glob('*.md')))
 
-    def search_notes(self, tags, dates) -> None:
+    def search_notes(self, tags, dates=None) -> List[str]:
         """
         @todo: Docstring for search_notes
         """
@@ -184,6 +184,7 @@ class Binder:
                 'vnnv read -l =', opts['-l'], ':',
                 'Converting the lines of all queried notes to latex')
             lines = ''.join(markdown_to_latex(notes_lines))
+            console.print(lines)
             latex_build_dir = Path(
                 os.path.expandvars(cfg['latex']['build_dir']))
         else:
@@ -191,27 +192,27 @@ class Binder:
                 Panel.fit(
                     'Give a valid option for output format! For example: vnnv read -l ...',
                     style='error'))
+        return lines
 
-        with NamedTemporaryFile(mode='w+',
-                                prefix='latex_note_',
-                                suffix='.tex',
-                                delete=False) as tf:
-            tf.write(lines)
-            tf.flush()
-            with cd(latex_build_dir):
-                with open('latex_wrapper.tex', 'r+') as wrapper:
-                    lines = wrapper.read()
-                    # console.print(lines)
-                    lines = re.sub(r'(begin[\s\S]*?\\input{).*?(})',
-                                   r'\1' + tf.name + r'\2', lines)
-                    # console.print(lines)
-                    wrapper.seek(0)
-                    wrapper.write(lines)
-                    wrapper.flush()
-                subprocess.call([
-                    'pdflatex', '--interaction=batchmode', 'latex_wrapper.tex'
-                ])
-                subprocess.call(['open', '-a', 'skim', 'latex_wrapper.pdf'])
+    def collect_flashcards(self, TAGS=None, **opts) -> List[str]:
+        """
+        @todo: Docstring for collect_flashcards
+        """
+        if TAGS is not None:
+            notes = self.search_notes(TAGS)
+
+        flash_card_dicts = [
+            Note(
+                self,
+                self.preamble_date_to_string(preamble['date']) +
+                preamble['title']).parse_vnnv_anki_codeblocks()
+            for preamble in notes
+        ]
+
+        if len(flash_card_dicts) == 0:
+            self.modified = True
+
+        return flash_card_dicts
 
         # console.print(lines)
 
@@ -220,7 +221,7 @@ class Binder:
 
     def __exit__(self, exception_type, exception_value, traceback):
         if self.modified:
-            print('remember to save changes and sync to github')
+            console.print('remember to save changes and sync to github')
 
     def add_note(self, *args, **kwargs):
         return

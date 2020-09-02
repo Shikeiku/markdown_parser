@@ -22,7 +22,9 @@ class Note:
             # console.print('Note path given is not PosixPath!', style='warning')
             note = Path(note)
             if not note.exists():
-                console.print('After converting to posixpath it was invalid! Trying to add b.path', style='warning')
+                console.print(
+                    'After converting to posixpath it was invalid! Trying to add b.path',
+                    style='warning')
                 note = self.b.path / note
                 if not note.exists():
                     console.print('The note does not exist!', style='error')
@@ -116,6 +118,12 @@ class Note:
 
         # console.print(preamble)
         return preamble
+
+    def parse_vnnv_anki_codeblocks(self, args) -> List[str]:
+        """
+        @todo: Docstring for parse_vnnv_anki_codeblocks
+        """
+        
 
     def read_lines(self) -> List:
         """
