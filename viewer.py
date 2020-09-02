@@ -56,6 +56,10 @@ class LaTeX_viewer():
             'anki-img': {
                 'begin': '\\begin{comment}\n',
                 'end': '\\end{comment}\n'
+            },
+            'preamble': {
+                'begin': '\\begin{comment}\n',
+                'end': '\\end{comment}\n'
             }
         }
 
@@ -156,7 +160,7 @@ class LaTeX_viewer():
     
     def typeset(self, line):
         BOLD_REGEX = r'\*\*([\w+\s]*?)\*\*'
-        ITALIC_REGEX = r'\*([\w+\s]*?)\*'
+        ITALIC_REGEX = r'\*([\w+\s\.\,\:\;]*?)\*'
         UNDERLINE_REGEX = r'\_([\w+\s]*?)\_'
         line = re.sub(BOLD_REGEX, r'\\textbf{\1}', line)
         line = re.sub(ITALIC_REGEX, r'\\textit{\1}', line)
@@ -317,7 +321,7 @@ if __name__ == "__main__":
 
     sub.run([
         'bash',
-        '/Users/mike/Documents/code/python/my_modules/neovim_plugins/markdown_parser/pdflatex.sh'
+        '/Users/mike/Documents/code/python/my_modules/neovim_plugins/nvm/pdflatex.sh'
     ])
     sub.run([
         'open', '-a', 'Skim',
