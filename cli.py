@@ -1,8 +1,10 @@
 #!/Users/mikevink/.dotfiles/virtualenvs/vnnv/bin/python3
 """Usage: vnnv [-h]
+       vnnv add [-h]
        vnnv list [-h] [ -t TAGS ... ] [ -d DATES ... ] [ -s KEY ]
        vnnv read [-hlw] [ -t TAGS ... ] [ -d DATES ... ] [ -s KEY ]
-       vnnv anki [-h] [ -t TAGS ... ] [ -d DATES ... ] [ -s KEY ]
+       vnnv anki [-h] [ -t TAGS ... ]
+       vnnv review [-h] [ -t TAGS ... ]
 
 options:
 -h --help   show this, use after command to show specific help
@@ -11,7 +13,7 @@ commands:
 list        list notes based on tags or something else
 read        read notes in latex or in html
 anki        add flashcards in notes to anki
-imode       interactively select notes and review them one by one
+review       interactively select notes and review them one by one
 """
 from docopt import docopt
 from typing import List, Dict
@@ -20,10 +22,9 @@ from rich.panel import Panel
 
 from vnnv.binder import Binder
 from vnnv.config import console, cfg
-from vnnv.utilities import apy_add_from_file
-from vnnv.utilities import pdflatex
 
 opts = docopt(__doc__, help=False)
+opts = dict((k.lower(), v) for k, v in opts.items())
 
 # console.print(dict(opts))
 # console.print(cfg)
@@ -58,16 +59,17 @@ def listNotes(**opts) -> None:
         return
     # console.print(listNotes.__code__.co_varnames)
     if not opts['-d']:
-        opts['DATES'] = None
+        opts['dates'] = None
     if not opts['-t']:
-        opts['TAGS'] = None
+        opts['tags'] = None
     if not opts['-s']:
-        opts['KEY'] = None
+        opts['key'] = None
     # console.print(opts)
     # console.print(list)
     # console.print(TAGS)
     with Binder(**cfg) as b:
-        b.tabularize(**opts)
+        notes = b.search_notes(**opts)
+        b.tabularize(notes, **opts)
 
 
 def readNotes(**opts) -> None:
@@ -79,17 +81,19 @@ def readNotes(**opts) -> None:
     """
     if opts['--help']:
         console.print(readNotes.__doc__)
-    if not opts['-d']:
-        opts['DATES'] = None
-    if not opts['-t']:
-        opts['TAGS'] = None
-    if not opts['-s']:
-        opts['KEY'] = None
-    console.print(opts)
+    if not opts['dates']:
+        opts['dates'] = None
+    if not opts['tags']:
+        opts['tags'] = None
+    if not opts['key']:
+        opts['key'] = None
+    if opts['-l']:
+        opts['latex'] = True
+    # console.print(opts)
     with Binder(**cfg) as b:
-        lines = b.read(**opts)
-        if opts['-l']:
-            pdflatex(lines)
+        notes = b.search_notes(**opts)
+        # console.print(notes)
+        b.read_in_markup(notes, **opts)
 
 
 def anki(**opts) -> None:
@@ -110,8 +114,12 @@ def anki(**opts) -> None:
     }}
 
     ## context
-    Book chapter 1 exercise 1
+    For example: Book chapter 1 exercise 1
     ~~~
+
+    The <question> and <answer> tags are to give some extra html styling to
+    your card within the anki fields. The {{c1::.*}} pattern is the cloze
+    deletion that will be hidden on the front of your card.
 
     options:
     -h --help       show this help string of vnnv list
@@ -126,23 +134,59 @@ def anki(**opts) -> None:
     """
     if opts['--help']:
         console.print(anki.__doc__)
-    if not opts['-t']:
-        opts['TAGS'] = None
-    console.print(opts)
+    if not opts['tags']:
+        opts['tags'] = None
+    # console.print(opts)
 
     with Binder(**cfg) as b:
         if opts['-t']:
-            flashcards = b.collect_flashcards(**opts)
-            if len(flashcards) == 0:
+            notes = b.search_notes(**opts)
+            if len(notes) == 0:
+                console.print(
+                    Panel.fit('No notes were found with the query!',
+                              style='error'))
+            flashcards = b.collect_flashcards(notes, **opts)
+            if flashcards is None:
                 console.print(Panel.fit('No flashcards found!', style='error'))
                 return
-            apy_add_from_file(flashcards)
-        else:
+            elif len(flashcards) == 0:
+                console.print(Panel.fit('No flashcards found!', style='error'))
+                return
+            b.give_notes_to_apy(flashcards)
+            # console.print(flashcards)
+            # console.print(lines)
+        elif not opts['--help']:
             console.print(
                 Panel.fit(
                     '@todo: Currently only adding flashcards by tags is supported!',
                     style='error'))
 
+def review(**opts):
+    """vnnv review [-h] [ -t TAGS ... ]
+
+    options:
+    -h --help       show this help string of vnnv list
+    -t TAGS ...     specify the tags to use as a query for notes to list. Tags
+                    should be words or numbers sepparated by any number of
+                    spaces.
+    -d DATES ...    @todo: Implement query by a range of dates
+    -s KEY ...      @todo: Implement a sort key that is based on tags. For
+                    example a note with tags chapter1 is sorted before a note with tags
+                    chapter2.
+
+    """
+    if opts['--help']:
+        console.print(anki.__doc__)
+    if not opts['TAGS']:
+        opts['TAGS'] = None
+    with Binder(**cfg) as b:
+        preambles = b.search_notes(opts['TAGS'])
+        preambles = b.sort_by_date(preambles)
+        notes = b.preamble_to_note(preambles)
+        number_of_notes = len(notes)
+        for i, note in enumerate(notes):
+            if not note.review(i, number_of_notes):
+                break
 
 def i_mode(**opts) -> None:
     """
@@ -160,6 +204,8 @@ elif opts['read']:
     readNotes(**opts)
 elif opts['anki']:
     anki(**opts)
+elif opts['review']:
+    review(**opts)
 elif not opts['--help']:
     infoNotes()
 else:
