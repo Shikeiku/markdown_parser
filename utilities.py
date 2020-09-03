@@ -1,8 +1,11 @@
 import tempfile
 import os
 import subprocess
-from subprocess import call
+import readchar
 import re
+
+from typing import List
+from subprocess import call
 
 from vnnv.config import cfg, console
 
@@ -59,10 +62,16 @@ def choose(items, text="Choose from list:"):
 
         try:
             reply = items[index - 1]
-            click.echo(index)
+            # click.echo(index)
             return reply
         except IndexError:
             continue
+
+def fzf_prompt(items) -> List:
+    """
+    @todo: Docstring for fzf_promprt
+    """
+    pass
 
 
 def pdflatex(lines, latex_build_dir=cfg['latex']['build_dir']) -> None:
@@ -93,7 +102,7 @@ def pdflatex(lines, latex_build_dir=cfg['latex']['build_dir']) -> None:
             subprocess.call(['open', '-a', 'skim', 'latex_wrapper.pdf'])
 
 
-def apy_add_from_file(lines, tags=None) -> None:
+def apy_add_from_file(lines) -> None:
     """
     @todo: Docstring for apy_add_from_file
 
@@ -104,9 +113,12 @@ def apy_add_from_file(lines, tags=None) -> None:
                                      prefix='vnnv-anki_',
                                      suffix='.md',
                                      delete=False) as tf:
+        tf.seek(0)
         tf.write(lines)
         tf.flush()
-        if tags is not None:
-            call(['apy', 'apy_add_from_file', '-t', tags, tf.name])
-        else:
-            call(['apy', 'apy_add_from_file', tf.name])
+        # tf.seek(0)
+        # console.print(tf.read())
+        # if tags is not None:
+        #     call(['apy', 'apy_add_from_file', '-t', tags, tf.name])
+        # else:
+        call(['apy', 'add-from-file', tf.name])
