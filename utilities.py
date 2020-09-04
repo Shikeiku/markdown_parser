@@ -67,6 +67,7 @@ def choose(items, text="Choose from list:"):
         except IndexError:
             continue
 
+
 def fzf_prompt(items) -> List:
     """
     @todo: Docstring for fzf_promprt
@@ -100,6 +101,24 @@ def pdflatex(lines, latex_build_dir=cfg['latex']['build_dir']) -> None:
             subprocess.call(
                 ['pdflatex', '--interaction=batchmode', 'latex_wrapper.tex'])
             subprocess.call(['open', '-a', 'skim', 'latex_wrapper.pdf'])
+
+
+def render_rmarkdown(
+    lines,
+    pdf_location='/Users/mikevink/.data/nvim/vnnv/rmarkdown/vnnv_rmarkdown_wrapper.pdf'
+):
+    console.print(lines)
+    with tempfile.NamedTemporaryFile(mode='w+',
+                                     prefix='vnnv_rmarkdown_',
+                                     suffix='.Rmd',
+                                     delete=False) as tf:
+        tf.write(lines)
+        tf.flush()
+        subprocess.call([
+            'Rscript', '-e', 'library(rmarkdown);render("' + tf.name +
+            '", pdf_document(toc=TRUE), "' + pdf_location + '")'
+        ])
+        subprocess.call(['open', '-a', 'Skim', pdf_location])
 
 
 def apy_add_from_file(lines) -> None:
