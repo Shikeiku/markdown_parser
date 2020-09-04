@@ -14,7 +14,7 @@ from vnnv.note import Note
 from vnnv.config import cfg, console
 from vnnv.convert import markdown_to_latex
 from vnnv.convert import vnnv_flashcards_to_apy
-from vnnv.utilities import call, cd, pdflatex, apy_add_from_file
+from vnnv.utilities import call, cd, pdflatex, apy_add_from_file, render_rmarkdown
 
 
 class Binder:
@@ -190,7 +190,12 @@ class Binder:
             # latex_build_dir = Path(
             #     os.path.expandvars(cfg['latex']['build_dir']))
         if rmarkdown:
-            pass
+            console.print(
+                'vnnv read -r =', rmarkdown, ':',
+                'Rendering the lines of all queried notes to rmarkdown pdf')
+            lines = [''.join(note) for note in lines]
+            lines = ''.join(lines)
+            render_rmarkdown(lines)
         else:
             console.print(
                 Panel.fit(
