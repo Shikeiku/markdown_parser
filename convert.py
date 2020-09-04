@@ -1,6 +1,7 @@
 import re
 from typing import List
 from vnnv.config import console
+from rich.panel import Panel
 
 
 def markdown_to_latex(lines: List[List[str]]) -> List[str]:
@@ -34,7 +35,6 @@ def markdown_to_latex(lines: List[List[str]]) -> List[str]:
     list_type = None
     for lines in lines:
         for i, line in enumerate(lines):
-            line = typeset_markdown_to_latex(line)
             # Convert the markdown headers to latex
             match = re.match(regex_dict['heading'], line)
             if match:
@@ -90,17 +90,47 @@ def markdown_to_latex(lines: List[List[str]]) -> List[str]:
                         latex += line
                         continue
             latex += line
+    latex = typeset_markdown_to_latex(latex)
     return latex
 
 
-def typeset_markdown_to_latex(line):
-    BOLD_REGEX = r'\*\*([\w+\s]*?)\*\*'
-    ITALIC_REGEX = r'\*([\w+\s]*?)\*'
-    UNDERLINE_REGEX = r'\_([\w+\s]*?)\_'
-    line = re.sub(BOLD_REGEX, r'\\textbf{\1}', line)
-    line = re.sub(ITALIC_REGEX, r'\\textit{\1}', line)
-    line = re.sub(UNDERLINE_REGEX, r'\\underline{\1}', line)
-    return line
+def typeset_markdown_to_latex(latex):
+    # console.print(MATH)
+    BOLD_REGEX = r'\*\*([\S\s]+?)\*\*'
+    ITALIC_REGEX = r'(?<!\*)\*([\S\s]+?)\*(?!\*)'
+    UNDERLINE_REGEX = r'\_([\S\s]+?)\_'
+    regex_list = [(BOLD_REGEX, r'\\textbf{\1}'),
+                  (ITALIC_REGEX, r'\\textit{\1}'),
+                  (UNDERLINE_REGEX, r'\\underlatex{\1}')]
+
+
+
+    for regex, replace in regex_list:
+
+        def math_and_link_check(match, latex=latex, regex=regex, replace=replace):
+            inside_math = False
+            MATH = re.findall(r'(?:\\\(|\\\[)([\s\S]*?)(?:\\\]|\\\))', latex)
+            LINKS = re.findall(r'', latex)
+            console.print(MATH)
+            upper_sub_match = match.group(0)
+            console.print('upper_sub_match:', upper_sub_match)
+            for i, math in enumerate(MATH):
+                console.print('math: ', math)
+                if set(upper_sub_match).issubset(set(math)):
+                    # console.print(Panel.fit(upper_sub_match, 'is a subset of math str: ', math, style='succes'))
+                    # console.print(Panel(upper_sub_match, 'is a subset of math str: ', math, style='succes'))
+                    console.print(Panel.fit(upper_sub_match + ' is a subset of math str: ' + math, style='error'))
+                    inside_math = True
+            if not inside_math:
+                upper_sub_replace = re.sub(regex, replace, upper_sub_match)
+                return upper_sub_replace
+            else:
+                return match.group(0)
+
+        latex = re.sub(regex, math_and_link_check, latex)
+    # latex = re.sub(ITALIC_REGEX, , latex)
+    # latex = re.sub(UNDERlatex_REGEX, , latex)
+    return latex
 
 
 def vnnv_flashcards_to_apy(flashcards) -> str:

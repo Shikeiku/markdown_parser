@@ -1,7 +1,7 @@
 #!/Users/mikevink/.dotfiles/virtualenvs/vnnv/bin/python3
 """Usage: vnnv [-h]
        vnnv add [-h]
-       vnnv list [-h] [ -s KEY ] (-t TAGS ... | -f FILES ... | -d DATES ...)
+       vnnv list [-h]  (-t TAGS ... | -f FILES ... | -d DATES ...) [ -s KEY ]
        vnnv read [-hrlw] (-t TAGS ... | -f FILES ... | -d DATES ...)
        vnnv anki [-h] ( -t TAGS ... )
        vnnv review [-h] ( -t TAGS ... )
