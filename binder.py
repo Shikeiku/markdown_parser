@@ -184,9 +184,9 @@ class Binder:
                 'vnnv read -l =', latex, ':',
                 'Converting the lines of all queried notes to latex')
             lines = markdown_to_latex(lines)
+            # console.print(lines)
             pdflatex(lines)
 
-            # console.print(lines)
             # latex_build_dir = Path(
             #     os.path.expandvars(cfg['latex']['build_dir']))
         if rmarkdown:
