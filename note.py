@@ -5,6 +5,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.align import Align
 from rich.columns import Columns
+
 from pathlib import Path, PosixPath
 from typing import ClassVar, List, Dict, AnyStr
 
@@ -184,7 +185,7 @@ class Note:
                 ['month']) + ' ' + self.preamble['date']['year']
         return rendered_date
 
-    def markdown_print(self, outline=False, preamble=False) -> None:
+    def markdown_print(self, outline=False, preamble=False, level=None) -> None:
         """
         @todo: Docstring for markdown_print
         """
@@ -195,9 +196,11 @@ class Note:
         if outline:
             repr_str = ''
             for line in lines:
-                match = re.match(r'#+ .+', line)
+                match = re.match(r'(#+) .+', line)
                 if match:
-                    repr_str += match.group(0) + '\n'
+                    if level is not None:
+                        if level >= len(match.group(1)):
+                            repr_str += match.group(0) + '\n'
             lines = repr_str + '\n'
 
         md = Markdown(''.join(lines), justify="left")
@@ -249,7 +252,7 @@ class Note:
         """
         @todo: Docstring for read_lines
         """
-        console.print('deleting the preamble lines from lines of', self.n)
+        # console.print('deleting the preamble lines from lines of', self.n)
         with open(self.n, 'r') as n:
             lines = n.readlines()
         i = 0
@@ -274,16 +277,13 @@ class Note:
         actions = {
             'c': 'Continue',
             'e': 'Edit',
-            'o': 'Organise links',
             'f': 'Show images',
-            'l': 'Read in latex',
-            'm': 'Toggle full text',
-            'p': 'Toggle print preamble',
-            'a': 'Give tags to apy review',
             'z': 'follow link mode',
+            'o': 'Open full note in format of choice',
+            'p': 'Toggle print preamble',
+            'q': 'Show numbers of flashcard, images, and more',
+            'a': 'Give flashcards to apy review',
             's': 'Save and stop',
-            'j': 'Open note in jupyter notebook',
-            'r': 'Read in Rmarkdown',
             'x': 'Abort',
         }
         # console.print(self)
@@ -292,6 +292,7 @@ class Note:
         refresh = True
         print_outline = True
         print_preamble = False
+        outline_level = 2
         while True:
             if refresh:
                 console.clear()
@@ -303,19 +304,26 @@ class Note:
                     console.print(f'Reviewing note {i+1} of {number_of_notes}',
                                   style='info')
 
-                column = 0
-                for x, y in actions.items():
-                    menu = '[green]' + x + '[/green]: ' + y
-                    if column < 3:
-                        console.print(f'{menu:28s}')
-                    else:
-                        console.print(menu)
-                    column = (column + 1) % 4
+                # column = 0
+                # for x, y in actions.items():
+                #     menu = '[green]' + x + '[/green]: ' + y
+                #     if column < 3:
+                #         console.print(f'{menu:28s}')
+                #     else:
+                #         console.print(menu)
+                #     column = (column + 1) % 4
 
-                console.print('\n')
+                menu = []
+                for x, y in actions.items():
+                    item = ['[green]' + x + '[/green]: ' + y]
+                    menu += item
+                # console.print(menu)
+                columns = Columns(menu, equal=True, expand=True, column_first=True)
+
+                console.print(columns)
 
                 self.markdown_print(outline=print_outline,
-                                    preamble=print_preamble)
+                                    preamble=print_preamble, level=outline_level)
             else:
                 refresh = True
             return False
