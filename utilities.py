@@ -140,4 +140,5 @@ def apy_add_from_file(lines) -> None:
         # if tags is not None:
         #     call(['apy', 'apy_add_from_file', '-t', tags, tf.name])
         # else:
-        call(['apy', 'add-from-file', tf.name])
+        subprocess.run(['apy', 'add-from-file', tf.name])
+    return True

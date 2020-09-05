@@ -1,5 +1,6 @@
 import re
 import os
+import readchar
 
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -10,6 +11,8 @@ from pathlib import Path, PosixPath
 from typing import ClassVar, List, Dict, AnyStr
 
 from vnnv.config import console
+from vnnv.convert import vnnv_flashcards_to_apy
+from vnnv.utilities import choose, apy_add_from_file
 # from vnnv.binder import Binder
 
 
@@ -155,10 +158,10 @@ class Note:
         if 'bib' in preamble_dict_keys:
             preamble_str += preamble_dict['bib'] + '\n'
         if 'tags' in preamble_dict_keys:
-            preamble_str += 'tags = {' + ''.join(preamble_dict['tags']) + '}\n'
+            preamble_str += 'tags = {' + ', '.join(preamble_dict['tags']) + '}\n'
         if 'links' in preamble_dict_keys:
-            preamble_str += 'links = {\n' + ''.join(
-                preamble_dict['links']) + '\n}\n'
+            preamble_str += 'links = {\n' + '\n'.join(
+                preamble_dict['links']) + '\n}\n'  # Not sure if there should be one more whitespace here
         if 'deck' in preamble_dict_keys:
             preamble_str += 'deck = {' + preamble_dict['deck'] + '}\n'
         preamble_str += '~~~\n'
@@ -185,7 +188,10 @@ class Note:
                 ['month']) + ' ' + self.preamble['date']['year']
         return rendered_date
 
-    def markdown_print(self, outline=False, preamble=False, level=None) -> None:
+    def markdown_print(self,
+                       outline=False,
+                       preamble=False,
+                       level=None) -> None:
         """
         @todo: Docstring for markdown_print
         """
@@ -234,7 +240,10 @@ class Note:
                     #         style='succes'))
                     preamble = self.preamble
                     flashcard['tags'] = preamble['tags']
-                    flashcard['deck'] = preamble['deck']
+                    if 'deck'in self.preamble.keys():
+                        flashcard['deck'] = preamble['deck']
+                    else:
+                        flashcard['deck'] = 'inbox anki-cloze'
                     parsed_cards += [flashcard]
                     continue
 
@@ -247,6 +256,46 @@ class Note:
             if vnnv_anki:
                 flashcard['fields'][field] += line
         return parsed_cards
+
+    def convert_inline_to_ref(self, lines, links, regex) -> List:
+        console.print('Preamble before self.convert_inline_to_ref', self.preamble)
+        # console.print(self.preamble['links'], style='succes')
+        new_links = False
+        for text, url in links:
+            if 'links' in self.preamble.keys():
+                if self.preamble['links'][0] == '':
+                    del self.preamble['links'][0]
+            else:
+                console.print(Panel.fit('Preamble does not have a link section!', style='error'))
+                raise SystemExit
+
+            link_in_text = text + ': ' + url
+            if link_in_text.strip() not in self.preamble['links']:
+                console.print('adding new links to preamble')
+                self.preamble['links'] += [link_in_text]
+                new_links = True
+        console.print('New preamble links after adding links:\n\n', self.preamble['links'])
+        if new_links:
+            with open(self.n, 'r+') as n:
+                lines = n.read()
+                n.seek(0)
+                lines = self.update_preamble(lines)
+                lines = re.sub(regex, r'\1', lines)
+                n.write(lines)
+        # print(lines)
+
+    def update_preamble(self, lines):
+        preamble_str = self.preamble_dict_to_str()
+        PREAMBLE_REGEX = r'~~~\{\.preamble.*\}[\s\S]+?~~~'
+        match = re.match(PREAMBLE_REGEX, lines)
+        if match:
+            # console.print('Found the preamble:\n\n', match.group(0))
+            print('Self.update_preamble will update the preamble to:\n\n', preamble_str)
+            lines = re.sub(PREAMBLE_REGEX, preamble_str.strip(), lines)
+                # print('After updating the preamble the lines look like:\n\n', lines)
+                # print(self.preamble)
+            # console.print(lines)
+        return lines
 
     def read_lines(self) -> List:
         """
@@ -268,6 +317,16 @@ class Note:
                 del lines[i]
             # i += 1
         # print(lines)
+        str_lines = ''.join(lines)
+        IMAGE_LINK_REGEX = r'(?<![\\])\!\[[^\]]+?\]\([^\)]+?\)'
+        self.preamble['images'] = re.findall(IMAGE_LINK_REGEX, str_lines)
+        console.print('This note has these images', self.preamble['images'])
+        INLINE_NON_IMAGE_LINK_REGEX = r'(?<![\!|\\])(\[[^\(\]]+?\])\(([\s\S]+?)\)'
+        links = re.findall(INLINE_NON_IMAGE_LINK_REGEX, str_lines)
+        # console.print('the links that were found and given to convert_inline_to_ref:', links)
+        if links != []:
+            self.convert_inline_to_ref(str_lines, links, INLINE_NON_IMAGE_LINK_REGEX)
+            self.b.modified = True
         return lines
 
     def review(self, i=None, number_of_notes=None) -> None:
@@ -281,8 +340,9 @@ class Note:
             'z': 'follow link mode',
             'o': 'Open full note in format of choice',
             'p': 'Toggle print preamble',
-            'q': 'Show numbers of flashcard, images, and more',
-            'a': 'Give flashcards to apy review',
+            'a': 'Give flashcards in note to apy',
+            '[': 'Decrease outline level',
+            ']': 'Increase outline level',
             's': 'Save and stop',
             'x': 'Abort',
         }
@@ -318,15 +378,31 @@ class Note:
                     item = ['[green]' + x + '[/green]: ' + y]
                     menu += item
                 # console.print(menu)
-                columns = Columns(menu, equal=True, expand=True, column_first=True)
+                columns = Columns(menu,
+                                  equal=True,
+                                  expand=True,
+                                  column_first=True)
 
                 console.print(columns)
 
                 self.markdown_print(outline=print_outline,
-                                    preamble=print_preamble, level=outline_level)
+                                    preamble=print_preamble,
+                                    level=outline_level)
+
             else:
                 refresh = True
-            return False
+
+            choice = readchar.readchar()
+            action = actions.get(choice)
+            if action == 'Continue':
+                return True
+            if action == 'Give flashcards in note to apy':
+                flashcards = self.parse_vnnv_anki_codeblocks()
+                lines = vnnv_flashcards_to_apy(flashcards)
+                if apy_add_from_file(lines):
+                    continue
+            if action == 'Save and stop':
+                return False
 
 
 if __name__ == '__main__':
