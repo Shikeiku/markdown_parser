@@ -177,13 +177,13 @@ class Binder:
         else:
             notes = self.sort_by_date(notes)
 
-        lines = [note.read_lines() for note in notes]
+        lines_and_links = [(note.read_lines(), note.preamble['links']) for note in notes]
 
         if latex:
             console.print(
                 'vnnv read -l =', latex, ':',
                 'Converting the lines of all queried notes to latex')
-            lines = markdown_to_latex(lines)
+            lines = markdown_to_latex(lines_and_links)
             # console.print(lines)
             pdflatex(lines)
 
@@ -193,7 +193,7 @@ class Binder:
             console.print(
                 'vnnv read -r =', rmarkdown, ':',
                 'Rendering the lines of all queried notes to rmarkdown pdf')
-            lines = [''.join(note) for note in lines]
+            lines = [''.join(note) for note, links in lines_and_links]
             lines = ''.join(lines)
             render_rmarkdown(lines)
         else:
@@ -220,8 +220,8 @@ class Binder:
             else:
                 flash_card_dicts += [card]
 
-        if len(flash_card_dicts) != 0:
-            self.modified = True
+        # if len(flash_card_dicts) != 0:
+        #     self.modified = True
 
         return flash_card_dicts
 
@@ -238,6 +238,10 @@ class Binder:
     def __exit__(self, exception_type, exception_value, traceback):
         if self.modified:
             console.print('remember to save changes and sync to github')
+            with cd(self.path):
+                call(['git', 'add', '.'])
+                call(['git', 'add', '-u'])
+                call(['git', 'commit'])
 
     def add_note(self, *args, **kwargs):
         return

@@ -199,6 +199,7 @@ def review(**opts):
         opts['tags'] = None
     with Binder(**cfg) as b:
         notes = b.search_notes(**opts)
+        notes = b.sort_by_date(notes)
         if len(notes) == 0:
             console.print(
                 Panel.fit('No notes were found with the query!',
