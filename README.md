@@ -12,7 +12,7 @@ top that stores information about the file. A file with this preamble can be
 found by vnnv and is called a note.
 
 Here is the current docopt for the tool, it is still under construction!
-```shell
+```
 Usage: vnnv [-h]
        vnnv add [-h]
        vnnv list [-h]  (-t TAGS ... | -f FILES ... | -d DATES ...)
