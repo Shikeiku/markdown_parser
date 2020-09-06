@@ -187,18 +187,17 @@ def typeset_markdown_to_latex(latex, links):
                             'subset:',
                             match.group(0).replace('[', r'\\['),
                             links[preamble_link]['text'].replace('[', r'\\['))
-                        if set(match.group(1)).issubset(
-                                links[preamble_link]['text']):
+                        if match.group(1) in links[preamble_link]['text']:
                             if links[preamble_link]['internet'] is not None:
                                 replace = r'\\href{' + links[preamble_link][
                                     'url'].replace('\ ', ' ') + r'}{' + links[
-                                        preamble_link]['text'] + r'}'
+                                        preamble_link]['text'] + r'}\n'
                                 break
                             else:
                                 replace = r'\\href{run:../../../../../../' + links[
                                     preamble_link]['url'].replace(
                                         '\ ', ' ') + r'}{' + links[
-                                            preamble_link]['text'] + r'}'
+                                            preamble_link]['text'] + r'}\n'
                                 break
 
                     # for link in links:

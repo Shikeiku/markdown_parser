@@ -1,15 +1,17 @@
 # vnnv - versatile notes in neovim
 
-Under construction! Worked on it for only two weeks so far. Current aim is just
-personal use, which is making organised notes, flashcards, and R/python
-notebooks with one tool.
-
-## The command line interface
-
 Vnnv works by configuring one directory as your binder. In this directory you
 store all you markdown files that have a vnnv specific preamble code block on
 top that stores information about the file. A file in this directory with the
 preamble can be found by vnnv and is called a note.
+
+**Under construction!** Worked on it for only two weeks so far. Current aim is just
+personal use, which is making organised notes, flashcards, and R/python
+notebooks with one tool. Could also be extended as a digital lab notebook.
+
+*Not packaged yet...*
+
+## The command line interface
 
 Here is the current docopt for the tool, it is still under construction!
 ```
@@ -46,7 +48,7 @@ title of your note in different columns.
 Usage: vnnv list [-h] (-t TAGS ... | -f FILES ... | -d DATES ...) [ -s KEY ]
 
     options:
-    -h --help       show this help string of vnnv list
+    -h --help       shows this
     -t TAGS ...     specify the tags to use as a query for notes to list. Tags
                     should be words or numbers sepparated by any number of
                     spaces.
@@ -62,16 +64,17 @@ Screenshot after using `vnnv list -t [ TAGS ... ]`:
 ### vnnv read
 
 Reads notes queried by tags in a specified format. Currently only latex and
-Rmarkdown are working.
+Rmarkdown are working. Next thing to add would be using the jupyter extension
+[jupytext] to get loss-less conversion from .md to .ipynb and back.
 ```
 vnnv read [-hrl] (-t TAGS ... | -f FILES ... | -d DATES ...) [ -s KEY ]
 
     options:
-    -h --help       show this help string of vnnv list
+    -h --help       show this
 
     -r              Read queried notes in Rmarkdown, for now be sure to query
                     only files with the .Rmd suffix. Markdown is converted
-                    using the rmarkdown R package.
+                    using the render method in the rmarkdown R package.
 
     -l              Read queried notes in latex. Markdown is converted using a
                     self-written regex parser (probably can break easily due to
@@ -87,6 +90,7 @@ vnnv read [-hrl] (-t TAGS ... | -f FILES ... | -d DATES ...) [ -s KEY ]
                     example a note with tags chapter1 is sorted before a note with tags
                     chapter2.
 ```
+![Gif of reading notes](./media/output_optimized.gif)
 
 ### vnnv anki
 
@@ -121,7 +125,7 @@ vnnv anki [-h] ( -t TAGS ... )
     deletion that will be hidden on the front of your card.
 
     options:
-    -h --help       show this help string of vnnv list
+    -h --help       show this
     -t TAGS ...     specify the tags to use as a query for notes to list. Tags
                     should be words or numbers sepparated by any number of
                     spaces.
@@ -139,7 +143,7 @@ Review your notes interactively, very nice idea and code was adapted from [apy].
 vnnv review [-h] ( -t TAGS ... )
 
     options:
-    -h --help       show this help string of vnnv list
+    -h --help       show this
     -t TAGS ...     specify the tags to use as a query for notes to list. Tags
                     should be words or numbers sepparated by any number of
                     spaces.
@@ -152,3 +156,4 @@ vnnv review [-h] ( -t TAGS ... )
 
 [apy]: https://github.com/lervag/apy/tree/master/apy
 [anki]: https://apps.ankiweb.net
+[jupytext]: https://github.com/mwouts/jupytext
