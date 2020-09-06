@@ -1,8 +1,10 @@
 import re
 from typing import List
+from vnnv.config import console
+from rich.panel import Panel
 
 
-def markdown_to_latex(notes: List[List[str]]) -> List[str]:
+def markdown_to_latex(lines_and_links: List[List[str]]) -> List[str]:
     """
     @todo: Docstring for markdown_to_latex
 
@@ -11,9 +13,9 @@ def markdown_to_latex(notes: List[List[str]]) -> List[str]:
     """
     regex_dict = {
         'heading': r'(#+)\s(?P<text>.*)',
-        'code': r'(```|~~~)(?P<text>.*)',
+        'code': r'(```|~~~)(?P<language>.*)',
         'hide': r'(?P<text>^([lL][iI][nN][kK])|^([tT][aA][gG][sS]))',
-        'inline_link': r'^\!\[(?P<text>.*?)\]\((?P<path>.*?)\)',
+        'inline_link': r'^\!\[(?P<text>.*?)\]\((?P<url>.*?)\)',
         'hyper_link': r'^\[(?P<text>.*?)\]\((?P<path>.*?)\)',
         'list':
         r'^((?P<star>\*[\s]{1,3})|(?P<number>^(\d\.)[\s]{1,3}))(?P<text>.*)',
@@ -27,22 +29,22 @@ def markdown_to_latex(notes: List[List[str]]) -> List[str]:
         '5': 'subparagraph'
     }
 
-    latex = []
+    latex = ''
     codeblock = False
+    vnnv_anki = False
     list = False
     list_type = None
-    for lines in notes:
+    all_links = []
+    for lines, links in lines_and_links:
+        all_links += links
         for i, line in enumerate(lines):
-            line = typeset_markdown_to_latex(line)
             # Convert the markdown headers to latex
             match = re.match(regex_dict['heading'], line)
             if match:
                 if not codeblock:
                     level = len(match.group(1))
-                    latex += [
-                        '\\' + level_to_heading[str(level)] + '{' +
-                        match.group('text') + '}\n'
-                    ]
+                    latex += '\\' + level_to_heading[str(
+                        level)] + '{' + match.group('text') + '}\n'
                     continue
                 else:
                     pass
@@ -53,11 +55,38 @@ def markdown_to_latex(notes: List[List[str]]) -> List[str]:
                 if not codeblock:
                     codeblock = True
                     # language = match.group(1)
-                    latex += ['\\begin{comment}\n']
+                    if match.group('language') == '{.vnnv_anki}':
+                        latex += '\\begin{verbatim}\n'
+                        vnnv_anki = True
+                    else:
+                        latex += '\\begin{comment}\n'
                     continue
                 elif codeblock:
                     codeblock = False
-                    latex += ['\\end{comment}\n']
+                    if vnnv_anki:
+                        vnnv_anki = False
+                        latex += '\\end{verbatim}\n'
+                        continue
+                    latex += '\\end{comment}\n'
+                    continue
+
+            # @todo: Convert here flashcards someday
+
+            # Convert inline links to images/pdfs here
+            match = re.match(regex_dict['inline_link'], line)
+            if match:
+                text = match.group('text')
+                url = match.group('url')
+                match = re.match(r'.*?(\..*$)', url)
+                if match:
+                    suffix = match.group(1)
+                    if suffix != '.pdf':
+                        latex += '\n\\begin{figure}[h!]\n\centering\n' + '\\fbox{\\includegraphics[width=\\textwidth, height=0.4\\textheight, keepaspectratio]{' + url.replace(
+                            '\ ', ' '
+                        ) + '}}\n' + '\\caption{' + text + '}\n' + '\\end{figure}\n'
+                    else:
+                        latex += '\\includepdf[scale=0.92, pages=-, pagecommand=\subsection{' + text + '}, offset= 0 -2cm]{' + url.replace(
+                            r'\\ ', ' ') + '}\n'
                     continue
 
             match = re.match(regex_dict['list'], line)
@@ -66,16 +95,16 @@ def markdown_to_latex(notes: List[List[str]]) -> List[str]:
                     list = True
                     if match.group('star'):
                         list_type = 'itemize'
-                        latex += ['\\begin{itemize}\n']
-                        latex += ['\\item ' + match.group('text') + '\n']
+                        latex += '\\begin{itemize}\n'
+                        latex += '\\item ' + match.group('text') + '\n'
                         continue
                     elif match.group('number'):
                         list_type = 'enumerate'
-                        latex += ['\\begin{enumerate}\n']
-                        latex += ['\\item ' + match.group('text') + '\n']
+                        latex += '\\begin{enumerate}\n'
+                        latex += '\\item ' + match.group('text') + '\n'
                         continue
                 elif list:
-                    latex += ['\\item ' + match.group('text') + '\n']
+                    latex += '\\item ' + match.group('text') + '\n'
                     continue
 
             if list:
@@ -83,22 +112,168 @@ def markdown_to_latex(notes: List[List[str]]) -> List[str]:
                 if match:
                     list = False
                     if list_type == 'itemize':
-                        latex += ['\\end{itemize}\n']
-                        latex += [line]
+                        latex += '\\end{itemize}\n'
+                        latex += line
                         continue
                     elif list_type == 'enumerate':
-                        latex += ['\\end{enumerate}\n']
-                        latex += [line]
+                        latex += '\\end{enumerate}\n'
+                        latex += line
                         continue
-            latex += [line]
+            latex += line
+    print(latex)
+    latex = typeset_markdown_to_latex(latex, all_links)
+    print(latex)
     return latex
 
 
-def typeset_markdown_to_latex(line):
-    BOLD_REGEX = r'\*\*([\w+\s]*?)\*\*'
-    ITALIC_REGEX = r'\*([\w+\s]*?)\*'
-    UNDERLINE_REGEX = r'\_([\w+\s]*?)\_'
-    line = re.sub(BOLD_REGEX, r'\\textbf{\1}', line)
-    line = re.sub(ITALIC_REGEX, r'\\textit{\1}', line)
-    line = re.sub(UNDERLINE_REGEX, r'\\underline{\1}', line)
-    return line
+def typeset_markdown_to_latex(latex, links):
+    # console.print(MATH)
+    BOLD_REGEX = r'\*\*([\S\s]+?)\*\*'
+    ITALIC_REGEX = r'(?<!\*)\*([\S\s]+?)\*(?!\*)'
+    UNDERSCORE_REGEX = r'(?<![\\])\_([^\_]+?)\_'
+    LINK_REGEX = r'(?<![\\\w+\{\}])\[([\s\S]+?)\](?![\\\(\{\}])'
+    regex_list = [(BOLD_REGEX, r'\\textbf{\1}'),
+                  (ITALIC_REGEX, r'\\textit{\1}'),
+                  (LINK_REGEX, ''), (UNDERSCORE_REGEX, r'\\underline{\1}')]
+    if links:
+        link_info = {}
+        for link in links:
+            match = re.match(
+                r'\[(?P<text>.*)\]: (?P<url>(?P<internet>https?\:\/\/)?.+?(?P<suffix>\.\w{1,5})?$)',
+                link)
+            if match:
+                link = match.group(0)
+                link_info[link] = {}
+                link_info[link]['text'] = match.group('text')
+                link_info[link]['url'] = match.group('url')
+                link_info[link]['suffix'] = match.group('suffix')
+                link_info[link]['internet'] = match.group('internet')
+
+    console.print(link_info)
+    link_regex = False
+    for regex, replace in regex_list:
+        if regex == LINK_REGEX:
+            link_regex = True
+
+        def math_and_link_check(match,
+                                latex=latex,
+                                regex=regex,
+                                replace=replace,
+                                links=link_info,
+                                link_regex=link_regex):
+            inside_math = False
+            MATH = re.findall(r'(?:\\\(|\\\[)([\s\S]*?)(?:\\\]|\\\))', latex)
+            # console.print(MATH)
+            upper_sub_match = match.group(0)
+            # console.print('upper_sub_match:', upper_sub_match)
+            for i, math in enumerate(MATH):
+                # console.print('math: ', math)
+                if not link_regex:
+                    if set(set(upper_sub_match) & set(math)):
+                        # console.print(Panel.fit(upper_sub_match, 'is a subset of math str: ', math, style='succes'))
+                        # console.print(Panel(upper_sub_match, 'is a subset of math str: ', math, style='succes'))
+                        # console.print(Panel.fit(upper_sub_match + ' is a subset of math str: ' + math, style='error'))
+                        inside_math = True
+                else:
+                    if set(upper_sub_match).issubset(set(math)):
+                        inside_math = True
+            if not inside_math:
+                if link_regex:
+                    console.print('Need info on the link! ' +
+                                  match.group(0).replace('[', r'\\['),
+                                  style='warning')
+                    for preamble_link in links.keys():
+                        console.print(
+                            'subset:',
+                            match.group(0).replace('[', r'\\['),
+                            links[preamble_link]['text'].replace('[', r'\\['))
+                        if set(match.group(1)).issubset(
+                                links[preamble_link]['text']):
+                            if links[preamble_link]['internet'] is not None:
+                                replace = r'\\href{' + links[preamble_link][
+                                    'url'].replace('\ ', ' ') + r'}{' + links[
+                                        preamble_link]['text'] + r'}'
+                                break
+                            else:
+                                replace = r'\\href{run:../../../../../../' + links[
+                                    preamble_link]['url'].replace(
+                                        '\ ', ' ') + r'}{' + links[
+                                            preamble_link]['text'] + r'}'
+                                break
+
+                    # for link in links:
+                    # if link_info:
+                    #     if link_info.group('internet'):
+                    #         replace = r'\\href\{\1\}'
+                upper_sub_replace = re.sub(regex, replace.replace('_', '\\_'), upper_sub_match)
+                return upper_sub_replace
+            else:
+                return match.group(0)
+
+        latex = re.sub(regex, math_and_link_check, latex)
+        if regex != LINK_REGEX:
+            link_regex = False
+            
+    # latex = re.sub(ITALIC_REGEX, , latex)
+    # latex = re.sub(UNDERlatex_REGEX, , latex)
+    latex = latex.replace('%', '\%')
+    return latex
+
+
+def vnnv_flashcards_to_apy(flashcards) -> str:
+    """
+    @todo: Docstring for vnnv_flashcards_to_apy
+
+    /flashcards/ @todo
+
+    """
+    # console.print(flashcards)
+    # for flashcard in flashcards:
+    #     for field in flashcard
+
+    vnnv_fields_keys = [
+        list(flashcard['fields'].keys()) for flashcard in flashcards
+    ]
+    # console.print(vnnv_fields_keys)
+    vnnv_fields_values = [
+        list(flashcard['fields'].values()) for flashcard in flashcards
+    ]
+    # console.print(vnnv_fields_values)
+
+    lines = ''
+    lines += 'model: Cloze\n'
+
+    # console.print(flashcards)
+    for i, fc in enumerate(flashcards):
+        lines += '# Note ' + str(i + 1) + '\n'
+        # console.print(flashcards[i]['tags'])
+        lines += 'tags: ' + ' '.join(fc['tags']) + '\n'
+        lines += 'deck: ' + fc['deck'] + '\n'
+        for j in range(len(vnnv_fields_keys[i])):
+            # console.print(fc)
+            # console.print(j)
+            lines += '## ' + vnnv_fields_keys[i][j] + '\n'
+            field = vnnv_fields_values[i][j]
+            field = re.sub(
+                r'<question>\n([\s\S]*?)</question>',
+                r"\1<hr style='height:2px;border-width:0;color:gray;background-color:gray'>",
+                field)
+            field = re.sub(r'<answer>([\s\S]*?)</answer>',
+                           r"<span style='font-size:30px'>\1</span>", field)
+            lines += field + '\n'
+
+            # @todo: copy library links to anki media collection
+
+    # console.print(lines)
+    return lines
+    # apy_notes = [
+    #     '# Note ' + str(i + 1) + '\n' +
+    #     'tags: ' + ' '.join(flashcard['tags']) + '\n' +
+    #     'deck: ' + flashcard['deck'] + '\n' +
+    #     '## ' + vnnv_fields_keys[i][0] + '\n' +
+    #     vnnv_fields_values[i][0] + '\n' +
+    #     '## ' + vnnv_fields_keys[i][1] + '\n' +
+    #     vnnv_fields_values[i][1] + '\n'
+    #     for i, flashcard in enumerate(flashcards)
+    # ]
+    # console.print(''.join(apy_notes))

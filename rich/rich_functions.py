@@ -10,7 +10,7 @@ custom_theme = Theme({
     "danger": "bold red"
 })
 
-console.print(i)
+# console.print(i)
 
 console = Console(theme=custom_theme, width=100)  # , record=True)
 
@@ -89,7 +89,7 @@ def print_theme():
 
 if __name__ == "__main__":
     # console.print("\nprinting console_attributes")
-    # console_attributes()
+    console_attributes()
     # console.print("\nprinting logging and printing")
     # logging_and_printing()
     # console.print("\nprinting justify_or_align")
@@ -102,5 +102,5 @@ if __name__ == "__main__":
     # console_attributes()
 
     # Styling functions
-    colors()
-    print_theme()
+    # colors()
+    # print_theme()
