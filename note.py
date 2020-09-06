@@ -6,6 +6,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.align import Align
 from rich.columns import Columns
+from rich.prompt import Confirm, Prompt
 
 from pathlib import Path, PosixPath
 from typing import ClassVar, List, Dict, AnyStr
@@ -320,7 +321,7 @@ class Note:
         str_lines = ''.join(lines)
         IMAGE_LINK_REGEX = r'(?<![\\])\!\[[^\]]+?\]\([^\)]+?\)'
         self.preamble['images'] = re.findall(IMAGE_LINK_REGEX, str_lines)
-        console.print('This note has these images', self.preamble['images'])
+        # console.print('This note has these images', self.preamble['images'])
         INLINE_NON_IMAGE_LINK_REGEX = r'(?<![\!|\\])(\[[^\(\]]+?\])\(([\s\S]+?)\)'
         links = re.findall(INLINE_NON_IMAGE_LINK_REGEX, str_lines)
         # console.print('the links that were found and given to convert_inline_to_ref:', links)
@@ -399,8 +400,8 @@ class Note:
             if action == 'Give flashcards in note to apy':
                 flashcards = self.parse_vnnv_anki_codeblocks()
                 lines = vnnv_flashcards_to_apy(flashcards)
-                if apy_add_from_file(lines):
-                    continue
+                apy_add_from_file(lines)
+                Prompt.ask("Pres enter to continue")
             if action == 'Save and stop':
                 return False
 

@@ -6,6 +6,7 @@ import re
 
 from typing import List
 from subprocess import call
+from rich.prompt import Confirm
 
 from vnnv.config import cfg, console
 
@@ -141,4 +142,3 @@ def apy_add_from_file(lines) -> None:
         #     call(['apy', 'apy_add_from_file', '-t', tags, tf.name])
         # else:
         subprocess.run(['apy', 'add-from-file', tf.name])
-    return True

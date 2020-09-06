@@ -234,11 +234,11 @@ def vnnv_flashcards_to_apy(flashcards) -> str:
     vnnv_fields_keys = [
         list(flashcard['fields'].keys()) for flashcard in flashcards
     ]
-    console.print(vnnv_fields_keys)
+    # console.print(vnnv_fields_keys)
     vnnv_fields_values = [
         list(flashcard['fields'].values()) for flashcard in flashcards
     ]
-    console.print(vnnv_fields_values)
+    # console.print(vnnv_fields_values)
 
     lines = ''
     lines += 'model: Cloze\n'
@@ -264,7 +264,7 @@ def vnnv_flashcards_to_apy(flashcards) -> str:
 
             # @todo: copy library links to anki media collection
 
-    console.print(lines)
+    # console.print(lines)
     return lines
     # apy_notes = [
     #     '# Note ' + str(i + 1) + '\n' +
