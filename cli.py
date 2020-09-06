@@ -41,7 +41,7 @@ def infoNotes() -> None:
 
 
 def listNotes(**opts) -> None:
-    """Usage: vnnv list [-h] [ -s KEY ] (-t TAGS ... | -f FILES ... | -d DATES ...)
+    """Usage: vnnv list [-h] (-t TAGS ... | -f FILES ... | -d DATES ...) [ -s KEY ]
 
     options:
     -h --help       show this help string of vnnv list
@@ -73,10 +73,19 @@ def listNotes(**opts) -> None:
 
 
 def readNotes(**opts) -> None:
-    """vnnv read [-hrlw] [ -s KEY ] (-t TAGS ... | -f FILES ... | -d DATES ...)
+    """vnnv read [-hrl] (-t TAGS ... | -f FILES ... | -d DATES ...) [ -s KEY ]
 
     options:
     -h --help       show this help string of vnnv list
+
+    -r              Read queried notes in Rmarkdown, for now be sure to query
+                    only files with the .Rmd suffix. Markdown is converted
+                    using the rmarkdown R package.
+
+    -l              Read queried notes in latex. Markdown is converted using a
+                    self-written regex parser! The latex is written to a tempfile on which
+                    pdflatex is called.
+
     -t TAGS ...     specify the tags to use as a query for notes to list. Tags
                     should be words or numbers sepparated by any number of
                     spaces.
