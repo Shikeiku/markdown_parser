@@ -7,6 +7,7 @@ import re
 from typing import List
 from subprocess import call
 from rich.prompt import Confirm
+from rich.panel import Panel
 
 from vnnv.config import cfg, console
 
@@ -27,7 +28,7 @@ class cd:
 
 def editor(filepath):
     """Use EDITOR to edit file at given path"""
-    return call([os.environ.get('EDITOR', 'vim'), filepath])
+    return call([os.environ.get('EDITOR', 'nvim'), filepath])
 
 
 def edit_text(input_text, prefix=None):
@@ -120,6 +121,24 @@ def render_rmarkdown(
             '", pdf_document(toc=TRUE), "' + pdf_location + '")'
         ])
         subprocess.call(['open', '-a', 'Skim', pdf_location])
+
+def jupyter_wrapper(note):
+    # console.print(lines)
+    with open(note.n, 'r') as n:
+        with cd(note.b.path):
+            if not note.b.jupyter_server:
+                subprocess.Popen(['jupyter', 'notebook', '--no-browser', '--port=9000'], stdout=subprocess.DEVNULL, stderr= subprocess.DEVNULL)
+                note.b.jupyter_server = True
+        subprocess.run(['open', 'http://localhost:9000/notebooks/'+note.n.name])
+        timer = os.path.getmtime(note.n)
+        console.print(Panel.fit('press any key to save potential edits with jupyter', style='succes'))
+        while True:
+            if os.path.getmtime(note.n) != timer:
+                note.lines = note.read_lines()
+                note.b.modified = True
+            stopkey = readchar.readchar()
+            if stopkey:
+                break
 
 
 def apy_add_from_file(lines) -> None:

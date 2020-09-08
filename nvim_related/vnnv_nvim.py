@@ -1,13 +1,7 @@
 import pynvim
 from pathlib import Path
 
-import neovim_plugins.markdown_parser.fence as fence
-import neovim_plugins.markdown_parser.anki as anki
-import neovim_plugins.markdown_parser.fzf as fzf
-import neovim_plugins.markdown_parser.viewer as viewer
-import neovim_plugins.markdown_parser.new_note as new_note
-import neovim_plugins.markdown_parser.link as link
-
+from vnnv.binder import Binder
 # -- How to add a comment
 # pynvim.plugin.command(name, nargs=0, complete=None, range=None, count=None, bang=False, register=False, sync=False, allow_nested=False, eval=None)
 
@@ -16,7 +10,7 @@ import neovim_plugins.markdown_parser.link as link
 
 
 @pynvim.plugin
-class MarkdownNeovimPortal():
+class VnnvNeovimPortal():
     """
     Here the functions and command (mainly commands) for my few markdown
     functions are stored.
@@ -40,54 +34,13 @@ class MarkdownNeovimPortal():
     def __init__(self, nvim):
         self.nvim = nvim
 
-    @pynvim.command('EnterFence')
-    def enterfence(self):
-        b = self.nvim.current.buffer
-        self.nvim.command('let g:mdfence="' + str(b.number) + '"')
-        instance = fence.Fence(self.nvim)
-        fences = instance.return_fences()
-        self.nvim.command('let g:fences=' + str(fences) + '')
-        instance.enterfence()
-
-    @pynvim.command('CloseFence')
-    def closefence(self):
-        b = self.nvim.eval('g:mdfence')
-        b = int(b)
-        i = self.nvim.eval('g:fences')
-        instance = fence.Fence(self.nvim)
-        instance.closefence(b, i)
-
-    @pynvim.command('FlashCards')
-    def flashcards(self):
-        cards = anki.BatchCards(self.nvim)
-        cards.write_flashcards()
-
-    @pynvim.command('NewNote')
-    def new_note(self):
-        """
-        Make a new note in the markdown_notes folder with a dt_string in front
-        """
-        new_note.newnote(self.nvim)
-
-    @pynvim.command('LaTeXview')
-    def latex_view(self):
-        """
-        Opens the current file and all linked files in latex mode.
-        """
-        LaTeX_view = viewer.LaTeX_viewer(self.nvim)
-        LaTeX_view.view_latex()
-
-    @pynvim.function('Markdowntags')
-    def tag_sink_portal(self, lines):
-        my_fzf = fzf.Markdown_fzf(self.nvim)
-        my_fzf.markdown_tag_sink(lines)
-
-    @pynvim.function('Markdownnotes')
-    def note_sink_portal(self, lines):
-        my_fzf = fzf.Markdown_fzf(self.nvim)
-        my_fzf.markdown_note_sink(lines)
-
-    @pynvim.function('MarkdownLinkTags')
-    def MarkdownLinkTags(self, lines):
+    @pynvim.function('vnnvFzF')
+    def MarkdownLinkTags(self, *args):
+        if 'link_tag' in args:
+            pass
+        elif 'open' in args:
+            pass
+        else:
+            pass
         my_fzf = fzf.Markdown_fzf(self.nvim)
         my_fzf.fzf_tag_linker(lines)

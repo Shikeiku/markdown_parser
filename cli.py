@@ -1,6 +1,6 @@
 #!/Users/mikevink/.dotfiles/virtualenvs/vnnv/bin/python3
 """Usage: vnnv [-h]
-       vnnv add [-h]
+       vnnv add [-hrj] ( TITLE | -o FILE_WITH_DOI ) [ -d DECK -t TAGS ... ]
        vnnv list [-h]  (-t TAGS ... | -f FILES ... | -d DATES ...) [ -s KEY ]
        vnnv read [-hrlw] (-t TAGS ... | -f FILES ... | -d DATES ...)
        vnnv anki [-h] ( -t TAGS ... )
@@ -186,6 +186,35 @@ def anki(**opts) -> None:
                     '@todo: Currently only adding flashcards by tags is supported!',
                     style='error'))
 
+def add_new(**opts) -> None:
+    """vnnv add [-hrj] TITLE [ -t TAGS ... ] [ -d DECK ]
+
+    options:
+    -h --help       show this help string of vnnv list
+
+    -r              Add new note from rmarkdown template
+
+    -j              Add new note from jupyter notebook template
+
+    -t TAGS ...     Specify the tags to add to the vnnv preamble
+
+    -d DECK         Specify the deck to add to the vnnv preamble
+
+    """
+    if opts['--help']:
+        console.print(anki.__doc__)
+    if not opts['-t']:
+        opts['tags'] = None
+    if not opts['-d']:
+        opts['deck'] = None
+    if opts['-r']:
+        opts['rmarkdown'] = True
+    if opts['-j']:
+        opts['jupyter'] = True
+    console.print(opts)
+    with Binder(**cfg) as b:
+        b.add_note(**opts)
+    
 
 def review(**opts):
     """vnnv review [-h] ( -t TAGS ... )
@@ -227,6 +256,8 @@ elif opts['anki']:
     anki(**opts)
 elif opts['review']:
     review(**opts)
+elif opts['add']:
+    add_new(**opts)
 elif not opts['--help']:
     infoNotes()
 else:

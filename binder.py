@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+from datetime import datetime
 from tempfile import NamedTemporaryFile
 from typing import List, Dict
 from pathlib import Path
@@ -30,6 +31,7 @@ class Binder:
         """
 
         self.modified = False
+        self.jupyter_server = False
         self._init_load_binder(path, check)
 
     def _init_load_binder(self, path, check) -> None:
@@ -163,9 +165,21 @@ class Binder:
                           row['bib'], note.preamble['title'])
         console.clear()
         console.print(table)
-        # Prompt.ask("Continue?", choices=['y', 'n'])
+        review = Confirm.ask("Do you want the review this list?")
+        if review:
+            n_notes = len(notes)
+            for i, note in enumerate(notes):
+                if not note.review(i=i, number_of_notes=n_notes):
+                    break
 
-    def read_in_markup(self, notes, latex=None, rmarkdown=None, sort=None, **opts) -> None:
+    def read_in_markup(self,
+                       notes,
+                       latex=None,
+                       rmarkdown=None,
+                       jupyter=None,
+                       terminal=None,
+                       sort=None,
+                       **opts) -> None:
         """
         @todo: Docstring for read
         """
@@ -177,7 +191,8 @@ class Binder:
         else:
             notes = self.sort_by_date(notes)
 
-        lines_and_links = [(note.read_lines(), note.preamble['links']) for note in notes]
+        lines_and_links = [(note.read_lines(), note.preamble['links'])
+                           for note in notes]
 
         if latex:
             console.print(
@@ -196,6 +211,10 @@ class Binder:
             lines = [''.join(note) for note, links in lines_and_links]
             lines = ''.join(lines)
             render_rmarkdown(lines)
+        if jupyter:
+            pass
+        if terminal:
+            pass
         else:
             console.print(
                 Panel.fit(
@@ -210,10 +229,7 @@ class Binder:
         """
 
         flash_card_dicts = []
-        parsed_cards = [
-            note.parse_vnnv_anki_codeblocks()
-            for note in notes
-        ]
+        parsed_cards = [note.parse_vnnv_anki_codeblocks() for note in notes]
         for card in parsed_cards:
             if isinstance(card, list):
                 flash_card_dicts += card
@@ -231,20 +247,70 @@ class Binder:
         """
         lines = vnnv_flashcards_to_apy(flashcards)
         apy_add_from_file(lines)
+        open_anki = Confirm.ask("Do you want to open anki?")
+        if open_anki:
+            call(['/Users/mikevink/bin/anki-2.1.26/run'])
 
     def __enter__(self):
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
+        if self.jupyter_server:
+            call(['jupyter', 'notebook', 'stop', '9000'])
         if self.modified:
-            console.print('remember to save changes and sync to github')
-            with cd(self.path):
-                call(['git', 'add', '.'])
-                call(['git', 'add', '-u'])
-                call(['git', 'commit'])
+            commit = Confirm.ask(
+                'Binder was modified, do you want to commit changes to your binder to git?'
+            )
+            if commit:
+                with cd(self.path):
+                    call(['git', 'add', '.'])
+                    call(['git', 'add', '-u'])
+                    call(['git', 'commit'])
 
-    def add_note(self, *args, **kwargs):
-        return
+    def add_note(self, title=None, jupyter=None, rmarkdown=None, **opts):
+        now = datetime.now()
+        dt_string = now.strftime("%Y%m%d-%Hh%Mm%Ss_")
+        if opts['-o']:
+            bib = self.get_bib(opts['file_with_doi'])
+        else:
+            bib = ''
+        if opts['tags'] is not None:
+            tag_list = ', '.join(opts['tags'])
+        else:
+            tag_list = ''
+        if opts['deck'] is not None:
+            deck = opts['deck']
+        else:
+            deck = ''
+
+        tags = f"tags = {{{tag_list}}}\n"
+        deck = f"deck = {{{deck}}}\n"
+        suffix = '.md'
+        jupyter_template = ''
+        rmarkdown_template = ''
+        file_with_doi_template = ''
+
+        if jupyter:
+            pass
+        if rmarkdown:
+            suffix = '.Rmd'
+            pass
+        if opts['file_with_doi']:
+            pass
+
+        template_str = f"""
+~~~{{.preamble}}
+{bib}{tags}{deck}links = {{
+}}
+~~~{jupyter_template}{rmarkdown_template}{file_with_doi_template}
+"""
+        name = dt_string + title + suffix
+        note = self.path / name
+        note.touch()
+        note.write_text(template_str.strip())
+        choice = Confirm.ask('Review new note?')
+        if choice:
+            Note(self, note).review()
 
     def delete_note(self, *args, **kwargs):
         return

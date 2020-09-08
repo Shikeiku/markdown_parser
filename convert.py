@@ -1,8 +1,14 @@
 import re
+import difflib
 from typing import List
 from vnnv.config import console
 from rich.panel import Panel
 
+# taken from https://stackoverflow.com/questions/14128763/how-to-find-the-overlap-between-2-sequences-and-return-it
+def get_overlap(s1, s2):
+    s = difflib.SequenceMatcher(None, s1, s2)
+    pos_a, pos_b, size = s.find_longest_match(0, len(s1), 0, len(s2)) 
+    return s1[pos_a:pos_a+size]
 
 def markdown_to_latex(lines_and_links: List[List[str]]) -> List[str]:
     """
@@ -162,21 +168,25 @@ def typeset_markdown_to_latex(latex, links):
                                 links=link_info,
                                 link_regex=link_regex):
             inside_math = False
-            MATH = re.findall(r'(?:\\\(|\\\[)([\s\S]*?)(?:\\\]|\\\))', latex)
+            MATH = re.findall(r'((?:\\\(|\\\[)[\s\S]*?(?:\\\]|\\\)))', latex)
             # console.print(MATH)
             upper_sub_match = match.group(0)
-            # console.print('upper_sub_match:', upper_sub_match)
+            console.print('upper_sub_match:', upper_sub_match)
+            math_delimiters = ['\\[', '\\]', '\\(', '\\)']
             for i, math in enumerate(MATH):
-                # console.print('math: ', math)
-                if not link_regex:
-                    if set(set(upper_sub_match) & set(math)):
-                        # console.print(Panel.fit(upper_sub_match, 'is a subset of math str: ', math, style='succes'))
-                        # console.print(Panel(upper_sub_match, 'is a subset of math str: ', math, style='succes'))
-                        # console.print(Panel.fit(upper_sub_match + ' is a subset of math str: ' + math, style='error'))
+                console.print('math: ', math)
+                if upper_sub_match in math:
+                    inside_math = True
+                    break
+
+                overlap = get_overlap(upper_sub_match, math)
+                for math_delimiter in math_delimiters:
+                    if math_delimiter in overlap:
                         inside_math = True
-                else:
-                    if set(upper_sub_match).issubset(set(math)):
-                        inside_math = True
+                        break
+                    else:
+                        console.print(overlap)
+                        console.print(Panel.fit('no overlapping delimitter', style='succes'))
             if not inside_math:
                 if link_regex:
                     console.print('Need info on the link! ' +
@@ -210,7 +220,7 @@ def typeset_markdown_to_latex(latex, links):
                 return match.group(0)
 
         latex = re.sub(regex, math_and_link_check, latex)
-        if regex != LINK_REGEX:
+        if regex == LINK_REGEX:
             link_regex = False
             
     # latex = re.sub(ITALIC_REGEX, , latex)
@@ -255,7 +265,7 @@ def vnnv_flashcards_to_apy(flashcards) -> str:
             field = vnnv_fields_values[i][j]
             field = re.sub(
                 r'<question>\n([\s\S]*?)</question>',
-                r"\1<hr style='height:2px;border-width:0;color:gray;background-color:gray'>",
+                r"<span style='font-size:30px'>\1</span><hr style='height:2px;border-width:0;color:gray;background-color:gray'>",
                 field)
             field = re.sub(r'<answer>([\s\S]*?)</answer>',
                            r"<span style='font-size:30px'>\1</span>", field)
