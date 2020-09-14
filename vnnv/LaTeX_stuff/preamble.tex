@@ -1,0 +1,349 @@
+% Packages
+%% Math packages
+\usepackage{amsmath, amssymb}
+%% Framing for boxes
+\usepackage{tikz}
+\usepackage[framemethod=TikZ]{mdframed}
+\usetikzlibrary{intersections}
+%% Listings package for importing code, important!
+\usepackage{listings}
+%% Formatting
+%%% Headers and sections
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+%%% Spacing
+\usepackage{setspace}
+\usepackage{parskip}
+%%% Colors and figures
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{import}
+\usepackage{pdfpages}
+\usepackage{transparent}
+\usepackage{svg}
+\usepackage{babel}
+\graphicspath{{./figures/}}
+% Misc.
+\usepackage{lipsum}
+\usepackage{xifthen}
+% \numberwithin{equation}{section}
+
+\usepackage{etoolbox}
+\usepackage{hyperref}
+
+
+
+\hypersetup{
+    % linktocpage,
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+
+
+\usepackage[%
+    a4paper,
+%   includeheadfoot,
+    head=\baselineskip,  % distance from bottom of header to block of text aka \headsep e.g. \baselineskip
+    foot=2.3cm,  % distance from top of footer to block of text aka \footskip
+    headheight=5pt,     % height for the header block (no equivalent for footer)
+%   heightrounded,       % ensure an integer number of lines
+    marginparwidth=2cm,  % right marginal note width
+    marginparsep=2mm,    % distance from text block to marginal note box
+%   height=\textheight,  % height of the text block
+%   width=\textwidth,    % width of the text block
+    top=2.5cm,           % distance of the text block from the top of the page
+    bottom=3cm,
+    left=2.5cm,
+    right=2.5cm,
+%    showframe,           % show the main blocks
+%    verbose,             % show the values of the parameters in the log file
+]{geometry}
+
+% memoir things
+% \setpnumwidth{10em} % changes the dots after the sections listings in the
+%% table of contents 
+\renewcommand*{\cftchaptername}{}
+% \renewcommand{\chapternumberline}{.}
+\renewcommand*{\cftchapteraftersnum}{.}
+
+% toc title
+\renewcommand{\printtoctitle}[1]{\par\centering\Large\bfseries\scshape #1 \par}
+\renewcommand{\afterchaptertitle}{\vspace{0.5em}}
+
+	\mdfdefinestyle{titlebox}{frametitleaboveskip=-\ht\strutbox,
+ frametitle={\colorbox{white}{\space \normalfont Chapter \thechapter \space}},
+    frametitlealignment=\lfill, skipabove=\baselineskip, skipbelow=0.5em, linewidth=0.5pt,
+  innerleftmargin=3ex, innerrightmargin=3ex,
+innertopmargin=0em, innerbottommargin=1em, innermargin =+0cm, outermargin =+0cm}
+	\newmdenv[style=titlebox, nobreak=true,
+  topline=true,
+  bottomline=true,
+  leftline=true,
+  rightline=true]{titlebox}
+% Making my own chapterstyle
+
+
+\makechapterstyle{mike-section}{
+  \renewcommand*{\printchaptername}{}
+  \renewcommand*{\chapternamenum}{}
+  \renewcommand*{\chapnumfont}{\chaptitlefont}
+  \renewcommand*{\printchapternum}{}%{\chapnumfont \thechapter\space}
+  \renewcommand*{\afterchapternum}{}
+  \setlength{\beforechapskip}{\baselineskip}
+  \setlength{\afterchapskip}{\baselineskip}
+
+  \renewcommand*{\clearforchapter}{}
+  \renewcommand*{\chapterheadstart}{\begin{titlebox}[]}
+  \renewcommand*{\printchaptertitle}[1]{\bfseries\huge\centering #1}
+  \renewcommand*{\afterchaptertitle}{\end{titlebox}}
+}
+
+% \setsecheadstyle{\normalfont\centering\MakeUppercase}
+% \setaftersecskip{-1em}
+
+\newcommand*{\quoter}[1]{\makebox[\textwidth][c]{\begin{minipage}{0.9\linewidth}\itshape"#1"\end{minipage}}}
+
+% Section
+
+%Commands for math notes
+%% General commands
+\newcommand*{\pb}{\pagebreak}%
+%% Math commands
+%%% QED
+\newcommand*{\QED}{\hfill\ensuremath{\square}\medskip}%
+%%% Number Fields
+\newcommand*{\N}{\mathbb{N}}%
+\newcommand*{\Z}{\mathbb{Z}}%
+\newcommand*{\Q}{\mathbb{Q}}%
+\newcommand*{\R}{\mathbb{R}}%
+\newcommand*{\C}{\mathbb{C}}%
+
+
+
+
+% Figures preamble for math
+	%% Global figure width
+	\setkeys{Gin}{width=\textwidth}
+	%% This is not used any more, but can be used for including PDFs with separate text files
+	% \newcommand{\incfig}[1]{%
+	%     \def\svgwidth{\columnwidth}
+	%     \import{./figures/}{#1.pdf_tex}
+	% }
+	% \makeatother
+	%% Used for including figures I export from affinity designer
+	\newcommand{\incsvg}[1]{%
+	    \includegraphics{#1.pdf}
+	}
+
+	\makeatother
+
+
+
+
+%% Titles and headers of notes
+%	% Title
+%	%% Title macro that is printed with the ~/scripts/compyler.py script
+%	\makeatother
+%	\def\@note{}%
+%	\newcommand{\note}[3]{
+%	    \ifthenelse{\isempty{#3}}{%
+%		\def\@note{Note #1}%
+%	    }{%
+%		\def\@note{Note #1: #3}%
+%	    }%
+%	    \subsection*{\@note}
+%	    \marginpar{\small\textsf{\mbox{#2}}}
+%	}
+%	\makeatletter
+%
+	% Header/footer
+	%% Here the header and footers are defined. Leftmark is the last chapter or section,
+	%% and the page is just the pagen\leftmarkumber.
+
+
+\makeatother
+	\pagestyle{fancy}
+	\fancyhead[RO,LE]{\thepage} % Right odd,  Left even
+\fancyhead[RE,LO]{\textit{\nouppercase{\leftmark}}}          % Right even, Left odd
+
+	\fancyfoot[RO,LE]{}  % Right odd,  Left even
+	\fancyfoot[RE,LO]{}          % Right even, Left odd
+	\fancyfoot[C]{}          % Right even, Left odd
+	% \fancyfoot[C]{\leftmark}     % Center
+\makeatletter
+
+
+
+
+
+% Boxes for programming
+	% Styles
+	%% Define styles for the mdframed environment here
+	% \mdfdefinestyle{normalbox}{skipabove=0pt, skipbelow=1.5ex, linewidth=1pt, innerleftmargin=3ex, innerrightmargin=3ex, innertopmargin=1ex, innermargin =+0cm, outermargin =+0cm}
+	% \newmdenv[style=normalbox, nobreak=true]{normalbox}
+
+	% % Environments
+	% %% Define environment names here with a counter
+	% %%% Theorem
+	% \newcounter{theorem}[chapter]
+	% \newenvironment{theorem}%
+	% {%
+	% \medskip\begin{normalbox}\noindent\refstepcounter{theorem}\textbf{theorem} \thetheorem .%
+	% }%
+	% {%
+	% \end{normalbox}%
+	% }
+
+
+	% %%% Definition
+	% \newcounter{definition}[chapter]
+	% \newenvironment{definition}%
+	% {%
+	% 	\medskip\begin{normalbox}\noindent\refstepcounter{definition}\textbf{definition} \textbef{\thedefinition} .%
+	% }%
+	% {%
+	% \end{normalbox}%
+	% }
+
+	% %%% Corollary
+	% \newcounter{corollary}[chapter]
+	% \newenvironment{definition}%
+	% {%
+	% 	\medskip\begin{normalbox}\noindent\refstepcounter{corollary}\textbf{corollary} \textbef{\thecorollary} .%
+	% }%
+	% {%
+	% \end{normalbox}%
+	% }
+
+
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\mdfsetup{skipabove=1em,skipbelow=1em,
+  topline=false,
+  bottomline=false,
+rightline=false,
+innertopmargin=-0.5em}
+\newmdtheoremenv[nobreak=true]{theorem}{Theorem}[chapter]
+\newmdtheoremenv[nobreak=true]{definition}{Definition}[chapter]
+\newmdtheoremenv[nobreak=true]{property}{Property}
+\newmdtheoremenv[nobreak=true]{consequence}{Consequence}
+\newmdtheoremenv[nobreak=true]{lemma}{Lemma}
+\newmdtheoremenv[nobreak=true]{proposition}{Proposition}
+\newmdtheoremenv[nobreak=true]{law}{Law}
+\newmdtheoremenv[nobreak=true]{postulate}{Postulate}
+\newtheorem{conclusion}{Conclusion}
+\newtheorem{corollary}{Corollary}
+\newtheorem{intuition}{Intuition}
+\newtheorem*{previously seen}{As previously seen}
+\newtheorem*{intermezzo}{Intermezzo}
+\newtheorem*{note}{Note}
+\newtheorem*{observe}{Observe}
+% \newtheorem*{exercise}{Exercise}
+\newtheorem*{remark}{Remark}
+\newtheorem*{practical}{Practical}
+\newtheorem*{problem}{Problem}
+\newtheorem*{terminology}{Terminology}
+\newtheorem*{application}{Application}
+\newtheorem*{ex}{Exercise}
+\newtheorem*{question}{Question}
+
+% environments
+%% Proof
+%% Example
+\newenvironment{ex}%
+{%
+\textit{example}%
+}
+
+\newmdenv[
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  skipabove=\topsep,
+  skipbelow=\topsep
+]{siderule}
+
+\newmdenv[
+  topline=false,
+  bottomline=false,
+  leftline=false,
+  rightline=true,
+  innertopmargin=0.2em,
+  skipabove=\topsep,
+  skipbelow=\topsep
+]{sideruleproof}
+
+\newenvironment{prettyproof}
+{
+  \begin{sideruleproof} 
+\begin{proof}
+}
+{
+\end{proof}
+  \end{sideruleproof} 
+}
+
+
+% Todonotes and inline notes in fancy boxes
+\usepackage{todonotes}
+\usepackage{tcolorbox}
+
+% Make boxes breakable
+\tcbuselibrary{breakable}
+
+
+
+
+% Verbetering is correction in Dutch
+% Usage: 
+% \begin{verbetering}
+%     Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
+%     tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
+%     vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren,
+%     no sea takimata sanctus est Lorem ipsum dolor sit amet.
+% \end{verbetering}
+\newenvironment{verbetering}{\begin{tcolorbox}[
+    arc=0mm,
+    colback=white,
+    colframe=green!60!black,
+    title=Opmerking,
+    fonttitle=\sffamily,
+    breakable
+]}{\end{tcolorbox}}
+
+% Noot is note in Dutch. Same as 'verbetering' but color of box is different
+\newenvironment{noot}[1]{\begin{tcolorbox}[
+    arc=0mm,
+    colback=white,
+    colframe=white!60!black,
+    title=#1,
+    fonttitle=\sffamily,
+    breakable
+]}{\end{tcolorbox}}
+
+% Exercise 
+% Usage:
+% \oefening{5}
+% \suboefening{1}
+% \suboefening{2}
+% \suboefening{3}
+% gives
+% Oefening 5
+%   Oefening 5.1
+%   Oefening 5.2
+%   Oefening 5.3
+\newcommand{\exercise}[1]{%
+    \def\@oefening{#1}%
+    \subsection*{Exercise #1}
+}
+
+\newcommand{\subexercise}[1]{%
+    \subsubsection*{Exercise \@oefening.#1}
+}
+
+
+\usepackage{cancel}
+\nonzeroparskip
